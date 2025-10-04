@@ -2,21 +2,24 @@
 ## Calculation of distant retrograde orbits for space weather forecast analyses
 
 
----
+Author: C. Möstl, Austrian Space Weather Office, GeoSphere Austria
 
-
-Dependencies:
-- needs ffmpeg for making movies
-- environment "dro" is defined in /env/env_dro.yml
-- need to download de442.bsp file from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/  (114 MB) and place file in folder kernels/
-
----
+Last update: October 2025
 
 
 ### Scripts
 
 
 dro.ipynb: generates numerical solutions for dro orbits and makes plots and animations
+
+---
+
+
+## Dependencies:
+- needs ffmpeg for making movies
+- environment "dro" is defined in /env/env_dro.yml
+- need to download de442.bsp file from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/  (114 MB) and place file in folder kernels/
+
 
 
 ---
