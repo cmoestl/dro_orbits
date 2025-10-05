@@ -26,6 +26,7 @@
 
 import time
 import os
+import requests
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
@@ -84,10 +85,9 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # ### load planetary orbits
 # get planetary orbits from spiceypy with files 
 # 
+# load de442.bsp from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/
 # 
-# https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/
-# 
-# https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/
+# other files already available in folder: https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/
 # 
 # saved in folder /kernels
 # 
@@ -95,6 +95,32 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 
 # In[2]:
 
+
+#check if de442.bsp is available, otherwise download
+
+def download_if_not_exist(url, filepath):
+    if os.path.exists(filepath):
+        print(f"File already exists at {filepath}")
+        return filepath
+
+    # Create directory if needed
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+    # Download
+    response = requests.get(url)
+    response.raise_for_status()
+
+    with open(filepath, 'wb') as f:
+        f.write(response.content)
+
+    print(f"Downloaded to {filepath}")
+    return filepath
+
+
+filepath='kernels/de442.bsp'
+url='https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de442.bsp'
+
+download_if_not_exist(url,filepath)
 
 #use two arbitray years for the planets
 start=datetime.datetime(2033,1,1)
@@ -771,12 +797,6 @@ plt.savefig(f'results/dro_all_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tigh
 
 
 
-# In[ ]:
-
-
-
-
-
 # ### Animations
 # use ffmpeg
 # 
@@ -969,13 +989,35 @@ os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/dro%04d.jpg -b:v
 # ### load ICMECAT
 # 
 
-# In[ ]:
+# In[21]:
+
+
+url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
+ic=pd.read_csv(url)
+print(ic.keys())
+
+#get indices for each target
+imes=np.where(ic.sc_insitu=='MESSENGER')[0]
+ivex=np.where(ic.sc_insitu=='VEX')[0]
+iwin=np.where(ic.sc_insitu=='Wind')[0]
+imav=np.where(ic.sc_insitu=='MAVEN')[0]
+ijun=np.where(ic.sc_insitu=='Juno')[0]
+
+ista=np.where(ic.sc_insitu=='STEREO-A')[0]
+istb=np.where(ic.sc_insitu=='STEREO-B')[0]
+ipsp=np.where(ic.sc_insitu=='PSP')[0]
+isol=np.where(ic.sc_insitu=='SolarOrbiter')[0]
+ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
+iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
+
+
+# In[38]:
 
 
 
 
 
-# In[11]:
+# In[49]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -1007,7 +1049,7 @@ ax.text(0,0,'Sun', color='black', ha='center',fontsize=fsize-5,verticalalignment
 ax.scatter(0,0,s=100,c='yellow',alpha=1, edgecolors='black', linewidth=0.3)
 
 ax.scatter(earth.lon, earth.r, s=symsize_planet, c='mediumseagreen', alpha=1,lw=0,zorder=3,marker=None, label='Earth')  
-ax.plot(venus.lon, venus.r, c='gold', alpha=1,lw=1,zorder=3, marker=None, label='Venus')  
+ax.plot(venus.lon, venus.r, c='gold', alpha=1,lw=1,zorder=1, marker=None, label='Venus')  
 #ax.plot(mercury.lon, mercury.r, c='grey', alpha=0.5,lw=1,zorder=3, marker=None, label='Mercury')  
 
 ax.plot(dro_lon1, dro_r1,c='black', alpha=0.8,lw=1, markersize=1, label='DRO 0.95 au')
@@ -1017,12 +1059,35 @@ ax.plot(dro_lon4, dro_r4,c='green', alpha=0.8,lw=1, markersize=1, label='DRO 0.8
 ax.plot(dro_lon5, dro_r5,c='orange', alpha=0.8,lw=1, markersize=1, label='DRO 0.75 au')
 
 
-ax.scatter(dro_lon1[shield_i], dro_r1[shield_i],c='black', marker='o',s=5)
-ax.scatter(dro_lon2[shield_i], dro_r2[shield_i],c='red', marker='o',s=5)
-ax.scatter(dro_lon3[shield_i], dro_r3[shield_i],c='blue', marker='o',s=5)
-ax.scatter(dro_lon4[shield_i], dro_r4[shield_i],c='green', marker='o',s=5)
-ax.scatter(dro_lon5[shield_i], dro_r5[shield_i],c='orange', marker='o',s=5)
+#ax.scatter(dro_lon1[shield_i], dro_r1[shield_i],c='black', marker='o',s=5)
+#ax.scatter(dro_lon2[shield_i], dro_r2[shield_i],c='red', marker='o',s=5)
+#ax.scatter(dro_lon3[shield_i], dro_r3[shield_i],c='blue', marker='o',s=5)
+#ax.scatter(dro_lon4[shield_i], dro_r4[shield_i],c='green', marker='o',s=5)
+#ax.scatter(dro_lon5[shield_i], dro_r5[shield_i],c='orange', marker='o',s=5)
 
+####### ICMECAT events
+
+ms=3
+al=0.6
+
+#ax.plot(np.radians(ic.mo_sc_long_heeq[iuly]),ic.mo_sc_heliodistance[iuly],'o',markersize=ms,c='brown', alpha=al, label='Ulysses')
+#ax.plot(np.radians(ic.mo_sc_long_heeq[imav]),ic.mo_sc_heliodistance[imav],'o',markersize=ms,c='orangered', alpha=al, label='MAVEN')
+
+#only inner heliosphere
+ax.plot(np.radians(ic.mo_sc_long_heeq[imes]),ic.mo_sc_heliodistance[imes],'o',markersize=ms,c='coral', alpha=al,label='MESSENGER')
+ax.plot(np.radians(ic.mo_sc_long_heeq[ivex]),ic.mo_sc_heliodistance[ivex],'o',markersize=ms,c='orange', alpha=al,label='Venus Express')
+ax.plot(np.radians(ic.mo_sc_long_heeq[istb]),ic.mo_sc_heliodistance[istb],'o',markersize=ms,c='royalblue', alpha=al,label='STEREO-B')
+ax.plot(np.radians(ic.mo_sc_long_heeq[ijun]),ic.mo_sc_heliodistance[ijun],'o',markersize=ms,c='black',markerfacecolor='yellow',alpha=al,label='Juno')
+
+#ax3.plot(ic.mo_sc_heliodistance[ijun],ic.mo_bmean[ijun],'o', c='black',markerfacecolor='yellow', alpha=al,ms=ms, label='Juno')
+
+ax.plot(np.radians(ic.mo_sc_long_heeq[ista]),ic.mo_sc_heliodistance[ista],'o',markersize=ms, c='red', alpha=al, label='STEREO-A')
+ax.plot(np.radians(ic.mo_sc_long_heeq[iwin]),ic.mo_sc_heliodistance[iwin],'o',markersize=ms, c='mediumseagreen', alpha=al, label='Wind')
+ax.plot(np.radians(ic.mo_sc_long_heeq[ipsp]),ic.mo_sc_heliodistance[ipsp],'o',markersize=ms, c='black', alpha=al,label='Parker Solar Probe')
+ax.plot(np.radians(ic.mo_sc_long_heeq[isol]),ic.mo_sc_heliodistance[isol],'o',markersize=ms, c='black',markerfacecolor='white', alpha=al, label='Solar Orbiter')
+ax.plot(np.radians(ic.mo_sc_long_heeq[ibep]),ic.mo_sc_heliodistance[ibep],'o',markersize=ms, c='darkblue',markerfacecolor='lightgrey', alpha=al, label='BepiColombo')
+
+plt.legend(loc=2,fontsize=10)
 #1 au circle
 ax.plot(np.deg2rad(np.arange(0,360)),np.zeros(360)+1,lw=1,alpha=0.8,linestyle='--',c='black', marker=None)
 ax.plot(np.zeros(11),np.arange(0,1.1,0.1),c='k',lw=1,alpha=0.8,linestyle='--')
@@ -1044,7 +1109,7 @@ ax.set_thetamax(-60)
 ax.set_ylim(0, 1.3) 
 
 
-ax.legend(bbox_to_anchor=(0.95, 1), loc='upper left',fontsize=8)
+ax.legend(bbox_to_anchor=(0.9, 0.9), loc='upper left',fontsize=8)
 plt.figtext(0.8,0.1,f' {nr_sc} DRO spacecraft', color='black', ha='left',fontsize=fsize-4, style='italic')
 plt.figtext(0.05,0.01,'Austrian Space Weather Office   GeoSphere Austria', color='black', ha='left',fontsize=fsize-4, style='italic')
 plt.figtext(0.99,0.01,'helioforecast.space', color='black', ha='right',fontsize=fsize-4, style='italic')
@@ -1052,5 +1117,12 @@ plt.figtext(0.99,0.01,'helioforecast.space', color='black', ha='right',fontsize=
 plt.tight_layout()
 
 
-plt.savefig(f'results/dro_all_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tight')
+plt.savefig(f'results/dro_all__icme_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tight')
+plt.savefig(f'results/dro_all_icme_polar_zoom_{nr_sc}.pdf', dpi=300,bbox_inches='tight')
+
+
+# In[ ]:
+
+
+
 

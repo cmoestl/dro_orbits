@@ -21,7 +21,7 @@ dro.ipynb: generates numerical solutions for dro orbits and makes plots and anim
 ### Dependencies
 - needs ffmpeg for making movies
 - environment "dro" is defined in /env/env_dro.yml
-- need to download de442.bsp file from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/  (114 MB) and place file in folder kernels/
+- file de442.bsp is automatically downloaded from from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/  (114 MB) and placed file in folder kernels/ 
 
 ---
 
@@ -29,9 +29,9 @@ dro.ipynb: generates numerical solutions for dro orbits and makes plots and anim
 
 Frnka 2010: https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-Perozzi 2017: 
+Perozzi+ 2017:  https://link.springer.com/article/10.1140/epjp/i2017-11644-0
 
-Cicalo 2025: 
+Cicalo+ 2025:  https://arxiv.org/abs/2508.02138
 
 
 ---
