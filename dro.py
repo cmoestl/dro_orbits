@@ -16,7 +16,8 @@
 # ---
 # ### Issues
 # 
-# - streamline calculation: write out results as recarrays
+# - streamline calculation: write out results of function directly as recarrays
+# - distribute spacecraft with better resolution (not days)
 # ---
 # 
 # 
@@ -27,7 +28,7 @@
 # 
 # 
 
-# In[168]:
+# In[25]:
 
 
 import time
@@ -61,7 +62,7 @@ mu = M_earth/(M_sun+M_earth)  # Earth mass / (Sun + Earth mass)
 # Calculate system parameters
 M_total = M_sun + M_earth
 omega = np.sqrt(G * M_total / au**3)  # Angular velocity of rotating frame (rad/s) from keplers laws?
-
+T=2*np.pi/omega/86400 #year in decimal days
 
 print('Au in km:',au) # in km
 print('M sun',M_sun)
@@ -97,7 +98,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[188]:
+# In[2]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -202,7 +203,7 @@ plt.plot(earth.time,earth.r,'-')
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[170]:
+# In[3]:
 
 
 def cr3bp_equations(t, state):
@@ -234,6 +235,12 @@ def make_dro(initial_state,years):
     t_span = (0, days * 86400)      # Time span for integration (in seconds)
     t_eval = np.linspace(t_span[0], t_span[1], days*24) #time resolution is 1 hour, need to include better for arbitrary time arrays
 
+    #days = T*years  # Simulate for n years
+    #t_span = (0, int(days * 86400))      # Time span for integration (in seconds)
+    #t_eval = np.linspace(t_span[0], t_span[1], 60*60) #time resolution is 60 sec * 60 min = 1 hour   
+
+
+
     #print("Integration started")
     # Solve the differential equations
     solution = solve_ivp(cr3bp_equations, t_span, initial_state,  t_eval=t_eval, method='DOP853', rtol=1e-10, atol=1e-8)
@@ -248,32 +255,31 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation
 
-# In[190]:
+# In[27]:
 
 
 ###################### find dro solutions by trial and error
-######### ****** need to add specific times for orbits
-
 
 #list for initial conditions
 initial_x0_array=[]
 initial_vy_array=[]
 
-########### solution for 0.95 au is 3.03 km/s  #check minimization, not quite right for the 0.95 au case
+########### solution for 0.95 au is manually found 3.035 km/s; check minimization, Method 1 not quite right for the 0.95 au case
 x0 = 0.95*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 3.03 # km/s  
+vy0 =  3.0494 # km/s  
+#vy0 =  3.035 # km/s  
 [x1,y1]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
 
 
-########### solution for 0.9 au is 6.13 km/s
+########### solution for 0.9 au is 6.13 km/s manually
 x0 = 0.90*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 6.1300 # km/s
+vy0 = 6.1297 # km/s   ##from find_dro
 [x2,y2]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
@@ -283,7 +289,7 @@ initial_vy_array.append(vy0)
 x0 = 0.85*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 9.3293 # km/s
+vy0 = 9.3298 # km/s
 #vy0 = 14.00 # km/s
 
 [x3,y3]=make_dro([x0, y0, vx0, vy0],2)
@@ -305,7 +311,7 @@ initial_vy_array.append(vy0)
 x0 = 0.75*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 16.1122 # km/s
+vy0 = 16.1142 # km/s
 
 [x5,y5]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
@@ -420,20 +426,17 @@ print('orbits written into', file_dir+filename)
 #with open(filename, 'rb') as f:
 #    rec_array = pickle.load(f)
 
-np.savetxt(file_dir+'dro1.txt', dro1, header='x y r lon', fmt='%.6f')
-np.savetxt(file_dir+'dro2.txt', dro1, header='x y r lon', fmt='%.6f')
-np.savetxt(file_dir+'dro3.txt', dro1, header='x y r lon', fmt='%.6f')
-np.savetxt(file_dir+'dro4.txt', dro1, header='x y r lon', fmt='%.6f')
-np.savetxt(file_dir+'dro5.txt', dro1, header='x y r lon', fmt='%.6f')
-
-
-
+np.savetxt(file_dir+'dro1.txt', dro1, header='x [au] y [au] r [au] lon [rad]', fmt='%.6f')
+np.savetxt(file_dir+'dro2.txt', dro2, header='x [au] y [au] r [au] lon [rad]', fmt='%.6f')
+np.savetxt(file_dir+'dro3.txt', dro3, header='x [au] y [au] r [au] lon [rad]', fmt='%.6f')
+np.savetxt(file_dir+'dro4.txt', dro4, header='x [au] y [au] r [au] lon [rad]', fmt='%.6f')
+np.savetxt(file_dir+'dro5.txt', dro5, header='x [au] y [au] r [au] lon [rad]', fmt='%.6f')
 
 
 # ### DRO and planets plot
 # 
 
-# In[173]:
+# In[20]:
 
 
 #plot spacecraft equidistant distribution on DRO 
@@ -510,7 +513,7 @@ plt.show()
 
 # ## Plots for DRO characteristics
 
-# In[174]:
+# In[21]:
 
 
 ########### plot for initial speed and minimum distance to Sun
@@ -529,6 +532,18 @@ x_fit = np.arange(0.7,1.0,0.01)
 y_fit = x_fit*slope + intercept
 
 
+# polynomial fit
+coefficients = np.polyfit(initial_x0_array, initial_vy_array, deg=2)
+print(f"Coefficients (highest to lowest degree): {coefficients}")
+# Create polynomial function from coefficients
+poly_func = np.poly1d(coefficients)
+
+# Plot
+y_fit_poly = poly_func(x_fit)
+
+
+
+
 ################################################## Create plots 
 sns.set_style('whitegrid')
 sns.set_context('talk')    
@@ -540,7 +555,8 @@ fig, ax = plt.subplots(1,figsize=(10, 8),dpi=100)
 ########### dependence of initial vy peed on heliocentric distance
 ax.scatter(initial_x0_array, initial_vy_array, c='black')
 
-ax.plot(x_fit, y_fit, label='fit')
+ax.plot(x_fit, y_fit, label='fit linear')
+ax.plot(x_fit, y_fit_poly, label='fit polynomial 2nd degree')
 
 ax.legend()
 ax.set_xlabel('$d_{min}$, au')
@@ -550,7 +566,7 @@ ax.set_xlim(0.7, 1.0)
 ax.set_ylim(0,20)
 
 
-# In[175]:
+# In[22]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -558,7 +574,6 @@ sns.set_style('whitegrid')
 sns.set_context('talk')    
 
 fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15, 6),dpi=100)
-
 
 min_dro_x1_arr=np.array([np.min(dro_x1),np.min(dro_x2),np.min(dro_x3),np.min(dro_x4),np.min(dro_x5)])
 max_dro_y1_arr=np.array([np.max(dro_y1),np.max(dro_y2),np.max(dro_y3),np.max(dro_y4),np.max(dro_y5)])
@@ -582,6 +597,8 @@ print(f"Standard error: {std_err:.4f}")
 y_fit1 = x_fit*slope + intercept
 ax1.plot(x_fit,y_fit1, c='k')
 
+
+print(' Factor for widest extension in y compared to distance from Earth: ',max_dro_y1_arr/(1-min_dro_x1_arr))
 
 
 
@@ -646,7 +663,7 @@ ax2.add_patch(box)
 ax2.legend()
 
 
-# In[176]:
+# In[23]:
 
 
 ########## ORBITAL PERIOD Figure
@@ -681,7 +698,7 @@ plt.ylabel('longitude')
 
 # ### plot combined with planets in HEEQ
 
-# In[177]:
+# In[9]:
 
 
 sns.set_style('darkgrid')
@@ -739,7 +756,7 @@ plt.savefig('results/dro_all_polar.png', dpi=300,bbox_inches='tight')
 
 # ### same plot zoomed in with spacecraft distribution
 
-# In[178]:
+# In[10]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -747,7 +764,7 @@ plt.savefig('results/dro_all_polar.png', dpi=300,bbox_inches='tight')
 #number of SHIELD spacecraft
 nr_sc=8
 t_all=365*1*24 # all time datapoints ****** need to set global time resolution better
-interval=int(np.round(t_all/nr_sc)) #to nearest day
+interval=int(np.round(t_all/nr_sc)) #to nearest day **** to coarse, needs hours for 0.95 au case
 #indices of shield spacecraft equidistant in time over 1 year
 shield_i=np.arange(0,t_all,interval)
 
@@ -825,14 +842,14 @@ plt.savefig(f'results/dro_all_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tigh
 # plot spacecraft equidistant distribution on DRO 
 # 
 
-# In[161]:
+# In[11]:
 
 
 sns.set_style('darkgrid')
 sns.set_context('talk')    
 
 ############## number of SHIELD spacecraft #########
-nr_sc=7
+nr_sc=4
 #################################################
 
 
@@ -921,7 +938,7 @@ factor=12
 make_frame(500)
 
 
-# In[162]:
+# In[12]:
 
 
 make_animation=False
@@ -973,7 +990,7 @@ if make_animation:
 
 # ### make one movie with HCI coordinates (transform from HEEQ to HCI)
 
-# In[163]:
+# In[13]:
 
 
 ## TBD
@@ -1006,7 +1023,7 @@ if make_animation:
 # ### load ICMECAT to compare DROs with existing observations
 # 
 
-# In[166]:
+# In[14]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1028,13 +1045,13 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[167]:
+# In[15]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
 
 #number of SHIELD spacecraft
-nr_sc=8
+#nr_sc=8
 t_all=365*1*24 # all time datapoints ****** need to set global time resolution better
 interval=int(np.round(t_all/nr_sc)) #to nearest day
 #indices of shield spacecraft equidistant in time over 1 year

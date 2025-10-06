@@ -2,18 +2,15 @@
 # coding: utf-8
 
 # ### find DRO solutions by minimization
-# find initial conditions: find minimum distance after 1 year to find exact initial conditions for given subsolar distance of the DRO
-# 
-# fix: 365 days right now, not 365.24 days
+# find initial conditions: find minimum distance after 1 year to find exact initial conditions for given subsolar distance of the DRO; does not work well for 0.95 au, but is fine for 0.9 au and below
+# algorithm for search for initial conditions - better to make 2 revolutions and try to match them as close as possible, not only start and end point
 # 
 # note that there are e.g. orbits that come back to Earth after 2 years 
 # 
 # 
-# ---
-# ### Issues
-# - algorithm for search for initial conditions: fix 365 to 365.24 days - move to find_dro.ipynb
+# 
 
-# In[1]:
+# In[87]:
 
 
 import time
@@ -44,10 +41,12 @@ G=const.G.value*1e-9 # use km
 # Sun-Earth system parameters mu: mass parameter (m2/(m1+m2))
 mu = M_earth/(M_sun+M_earth)  # Earth mass / (Sun + Earth mass)
 
+
 # Calculate system parameters
 M_total = M_sun + M_earth
-omega = np.sqrt(G * M_total / au**3)  # Angular velocity of rotating frame (rad/s) from keplers laws?
+omega = np.sqrt(G * M_total / au**3)  # Angular velocity of rotating frame (rad/s) from keplers laws
 
+T=2*np.pi/omega/86400 #year in decimal days
 
 print('Au in km:',au) # in km
 print('M sun',M_sun)
@@ -58,7 +57,7 @@ print(f"System Parameters:")
 print(f"  Mass parameter μ = {mu:.6e}")
 print(f"  Earth-Sun distance au = {au:.6e} km")
 print(f"  Angular velocity ω = {omega:.6e} rad/s")
-print(f"  Orbital period = {2*np.pi/omega/86400:.2f} days\n")
+print(f"  Orbital period = {T:.6f} days\n")
 
 
 #plotly if needed
@@ -75,37 +74,7 @@ kernels_path='kernels'
 os.system('jupyter nbconvert --to script find_dro.ipynb')   
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[2]:
+# In[88]:
 
 
 def cr3bp_equations(t, state):
@@ -133,13 +102,19 @@ def cr3bp_equations(t, state):
 
 def make_dro(initial_state,years):
 
-    days = 365*years  # Simulate for n years
-    t_span = (0, days * 86400)      # Time span for integration (in seconds)
-    t_eval = np.linspace(t_span[0], t_span[1], days*24) #time resolution is 1 hour, need to include better for arbitrary time arrays
+    #previous
+    #days = 365*years  # Simulate for n years
+    #t_span = (0, days * 86400)      # Time span for integration (in seconds)
+    #t_eval = np.linspace(t_span[0], t_span[1], days*24) #time resolution is 1 hour, need to include better for arbitrary time arrays
+
+    #more precise length of year to seconds
+    days = T*years  # Simulate for n years
+    t_span = (0, int(days * 86400))      # Time span for integration (in seconds)
+    t_eval = np.linspace(t_span[0], t_span[1], 60*60) #time resolution is 60 sec * 60 min = 1 hour   
 
     #print("Integration started")
     # Solve the differential equations
-    solution = solve_ivp(cr3bp_equations, t_span, initial_state,  t_eval=t_eval, method='DOP853', rtol=1e-10, atol=1e-8)
+    solution = solve_ivp(cr3bp_equations, t_span, initial_state,  t_eval=t_eval, method='DOP853', rtol=1e-10, atol=1e-9)
 
     # Extract trajectory, convert to au
     x = solution.y[0]/au; y = solution.y[1]/au
@@ -149,61 +124,113 @@ def make_dro(initial_state,years):
     return x,y
 
 
-# In[3]:
+# #### Method 1: match start and end point after 1 orbital period
+# 
+
+# In[100]:
 
 
 ########### start with subsolar distance of the DRO you want to find
-x0 = 0.9*au  # km (between Sun and Earth)
+x0 = 0.90*au  # km (between Sun and Earth)
 y0 = 0
 vx0 = 0
 
 #array of initial speed in y direction
-resolution=100 #50-200
+#resolution=5000 
+resolution=500 
 
 #retrograde orbits start with positive vy
-vy0_arr=np.linspace(0.0,20.0,resolution)
+vy0_arr=np.linspace(6.0,6.2,resolution)
 
 #prograde check
 #vy0_arr=-np.linspace(0.0,20.0,resolution)
 
 
 distance=[]
-#go through all orbit solutions for given 
+#go through all orbit solutions for given vy0
 for i in np.arange(0,len(vy0_arr),1):    
-    [xtest,ytest]=make_dro([x0, y0, vx0, vy0_arr[i]],1)
-    distance.append(np.linalg.norm([xtest[-1]-x0/au],[ytest[-1]-y0/au]))
+    [xtest,ytest]=make_dro([x0, y0, vx0, vy0_arr[i]],1)    
+    distance.append(np.sqrt( (xtest[-1]-x0/au)**2+(ytest[-1])**2)) #y0 is always 0
 
 distance=np.array(distance)
-plt.figure(2)
-plt.plot(vy0_arr,distance)  
+
+print(vy0_arr[-10:-1])
+
+
+# In[101]:
+
+
+sns.set_style('whitegrid')
+sns.set_context('talk')
+
+fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(12, 6),dpi=100)
+ax1.plot(vy0_arr,distance)  
+ax1.set_xlabel('Vy_0')
+#ax1.set_ylim(0,0.5)
 
 #find all minima of distance for different orbits that close in on themselves
-min_i = argrelextrema(distance, np.less)[0]
+#for more than one minimum
+#min_i = argrelextrema(distance, np.less)[0]
+min_i = np.argmin(distance)
 print('indices ',min_i)
 print('vy0 [km/s] values for all minima',vy0_arr[min_i])
 
 ### plot all solutions that close in on themselves
-plt.figure(3)
-for k in np.arange(0,len(min_i)):
-    [xmini,ymini]=make_dro([x0, y0, vx0, vy0_arr[min_i[k]]],1)
-    plt.plot(xmini,ymini)
+#for k in np.arange(0,len(min_i)):
+#    [xmini,ymini]=make_dro([x0, y0, vx0, vy0_arr[min_i[k]]],1)
+#    ax2.plot(xmini,ymini,linewidth=1.0)
+#    ax2.scatter(xmini[0],ymini[0],s=20,marker='o')
+#   ax2.scatter(xmini[-1],ymini[-1],s=20,marker='x')
+
+### find the absolute minimum if there is only one
+[xmini,ymini]=make_dro([x0, y0, vx0, vy0_arr[min_i]],1)
+ax2.plot(xmini,ymini,linewidth=1.0)
+ax2.scatter(xmini[0],ymini[0],s=10,marker='o')
+ax2.scatter(xmini[-1],ymini[-1],s=20,marker='x')
 
 
+ax2.grid(True, alpha=0.8, linestyle='-')
+ax2.set_aspect('equal')
+
+ax2.set_xlim(x0/au-0.01,x0/au+0.01)
+ax2.set_ylim(-0.01,0.01)
+plt.show(fig)
+
+
+# ### Results
+# 
+# 
+# **from matching start to end point after 1 orbital period (1 year)**
+# 
+# 
+# y0= 0.95 - > vy0 = 3.0496 km/s  # not totally right, rather should be 3.03
+# 
+# y0= 0.90 - > vy0 = 6.1297 km/s
+# 
+# y0= 0.85 - > vy0 = 9.3298 km/s
+# 
+# y0= 0.80 - > vy0 = 12.6525 km/s
+# 
+# y0= 0.75 - > vy0 = 16.1142 km/s
+# 
+# 
+# 
+
+# #### Method 2: match 2 orbital periods and minimize their shape deviation
+# 
 
 # In[ ]:
 
 
+**develop: match 2 orbital periods = stability**
 
+y0= 0.95 - > vy0 =  km/s  # 
 
+y0= 0.90 - > vy0 = km/s
 
-# In[ ]:
+y0= 0.85 - > vy0 = km/s
 
+y0= 0.80 - > vy0 =  km/s
 
-
-
-
-# In[ ]:
-
-
-
+y0= 0.75 - > vy0 =  km/s
 
