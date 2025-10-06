@@ -3,25 +3,31 @@
 
 # ## DRO Orbits playground
 # 
-# This code generates distant retrograde orbits (DROs) in the Sun-Earth system depending on the distance from the Sun 
-# 
+# This code generates distant retrograde orbits (DROs) in the Sun-Earth system depending on the distance from the Sun     
 # part of https://github.com/cmoestl/dro_orbits
 #  
-# Authors: C. Möstl, Austrian Space Weather Office, GeoSphere Austria
-# 
-# bluesky @chrisoutofspace, https://github.com/cmoestl
+# Authors: C. Möstl, Austrian Space Weather Office, GeoSphere Austria    
+# https://bsky.app/profile/chrisoutofspace.bsky.social, https://github.com/cmoestl
 # 
 # last update: October 2025
 #  
-# uses the **dro** environment (for environment file, see folder env)
+# uses conda environment *dro* (for environment file, see folder env)
 # 
-# Issues:
+# ---
+# ### Issues
 # 
-# - to do: movie in HCI
-# - to do: write pickle and txt files with orbit solutions
+# - streamline calculation: write out results as recarrays
+# ---
+# 
+# 
+# ### Ideas
+# - movie in HCI (convert back to x' and y' with omega)
+# - plotly plot with clickable positions
+# - plot lead time with shade
+# 
 # 
 
-# In[1]:
+# In[168]:
 
 
 import time
@@ -39,6 +45,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.integrate import solve_ivp
 from scipy import stats
+from scipy.signal import argrelextrema
 import multiprocessing as mp
 
 import astropy.units as u
@@ -83,17 +90,14 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 
 
 # ### load planetary orbits
-# get planetary orbits from spiceypy with files 
-# 
-# load de442.bsp from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/
-# 
-# other files already available in folder: https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/
-# 
+# get planetary orbits from spiceypy with files    
+# load de442.bsp from https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/    
+# other files already available in folder: https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/    
 # saved in folder /kernels
 # 
 # 
 
-# In[2]:
+# In[188]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -184,6 +188,11 @@ earth=get_planet_positions(times,kernels_path, 'EARTH_BARYCENTER')
 #venus.time=mdates.date2num(venus.time)
 #earth.time=mdates.date2num(earth.time)
 
+
+sns.set_style('whitegrid')
+sns.set_context('paper')   
+# Create the plot
+fig, ax = plt.subplots(figsize=(8, 3),dpi=100)
 plt.plot(mercury.time,mercury.r,'-')
 plt.plot(venus.time,venus.r,'-')
 plt.plot(earth.time,earth.r,'-')
@@ -193,7 +202,7 @@ plt.plot(earth.time,earth.r,'-')
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[3]:
+# In[170]:
 
 
 def cr3bp_equations(t, state):
@@ -219,26 +228,27 @@ def cr3bp_equations(t, state):
     return [vx, vy, ax, ay]
 
 
-def make_dro(initial_state):
+def make_dro(initial_state,years):
 
-    years=2
-    days = 365*years  # Simulate for 1 year
+    days = 365*years  # Simulate for n years
     t_span = (0, days * 86400)      # Time span for integration (in seconds)
     t_eval = np.linspace(t_span[0], t_span[1], days*24) #time resolution is 1 hour, need to include better for arbitrary time arrays
 
-    print("Integration started")
+    #print("Integration started")
     # Solve the differential equations
     solution = solve_ivp(cr3bp_equations, t_span, initial_state,  t_eval=t_eval, method='DOP853', rtol=1e-10, atol=1e-8)
 
     # Extract trajectory, convert to au
     x = solution.y[0]/au; y = solution.y[1]/au
 
+    #print("Integration done")
+
     return x,y
 
 
 # ### Numerical simulation
 
-# In[4]:
+# In[190]:
 
 
 ###################### find dro solutions by trial and error
@@ -249,12 +259,12 @@ def make_dro(initial_state):
 initial_x0_array=[]
 initial_vy_array=[]
 
-########### solution for 0.95 au is 3.03 km/s
+########### solution for 0.95 au is 3.03 km/s  #check minimization, not quite right for the 0.95 au case
 x0 = 0.95*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 3.03 # km/s
-[x1,y1]=make_dro([x0, y0, vx0, vy0])
+vy0 = 3.03 # km/s  
+[x1,y1]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
 
@@ -263,28 +273,30 @@ initial_vy_array.append(vy0)
 x0 = 0.90*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 6.13 # km/s
-[x2,y2]=make_dro([x0, y0, vx0, vy0])
+vy0 = 6.1300 # km/s
+[x2,y2]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
 
 
-########### solution for 0.85 au is 9.33 km/s
+########### solution for 0.85 au is 9.3293 km/s #from minimization analysis
 x0 = 0.85*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 9.33 # km/s
-[x3,y3]=make_dro([x0, y0, vx0, vy0])
+vy0 = 9.3293 # km/s
+#vy0 = 14.00 # km/s
+
+[x3,y3]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
 
 
-########### solution for 0.8 au is 12.65 km/s
+########### solution for 0.8 au is 12.65265 km/s
 x0 = 0.8*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 12.65 # km/s
-[x4,y4]=make_dro([x0, y0, vx0, vy0])
+vy0 = 12.6525 # km/s
+[x4,y4]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
 
@@ -293,9 +305,9 @@ initial_vy_array.append(vy0)
 x0 = 0.75*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 16.11 # km/s
+vy0 = 16.1122 # km/s
 
-[x5,y5]=make_dro([x0, y0, vx0, vy0])
+[x5,y5]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
 
@@ -377,37 +389,54 @@ ax.yaxis.set_major_locator(MultipleLocator(0.1))
 ax.grid(True, alpha=1.0, linestyle='-')
 ax.set_aspect('equal')
 
-####### write orbits in pickle and txt files
-
-###pickle files
-
-#dro_x3,dro_y3,dro_r3,dro_lon3
-
-file_dir='orbit_files'
-
-#make recarrays
-#dro1=
-#dro2=
-#dro3=
-#dro4=
-#dro5=
+############################### write orbits in pickle and txt files
 
 
-# ### find DRO solutions by minimization
+file_dir='orbit_files/'
 
-# In[5]:
+dro1 = np.rec.fromarrays([dro_x1, dro_y1, dro_r1, dro_lon1],
+    dtype=[('x', 'f8'), ('y', 'f8'), ('r', 'f8'), ('lon', 'f8')])
+
+dro2 = np.rec.fromarrays([dro_x2, dro_y2, dro_r2, dro_lon2],
+    dtype=[('x', 'f8'), ('y', 'f8'), ('r', 'f8'), ('lon', 'f8')])
+
+dro3 = np.rec.fromarrays([dro_x3, dro_y3, dro_r3, dro_lon3],
+    dtype=[('x', 'f8'), ('y', 'f8'), ('r', 'f8'), ('lon', 'f8')])
+
+dro4 = np.rec.fromarrays([dro_x4, dro_y4, dro_r4, dro_lon4],
+    dtype=[('x', 'f8'), ('y', 'f8'), ('r', 'f8'), ('lon', 'f8')])
+
+dro5 = np.rec.fromarrays([dro_x5, dro_y5, dro_r5, dro_lon5],
+    dtype=[('x', 'f8'), ('y', 'f8'), ('r', 'f8'), ('lon', 'f8')])
+
+### write pickle files
+# Write
+filename='dro.p'
+with open(file_dir+filename, 'wb') as f:
+    pickle.dump([dro1,dro2,dro3,dro4,dro5], f)
+print('orbits written into', file_dir+filename)
+
+# Read
+#with open(filename, 'rb') as f:
+#    rec_array = pickle.load(f)
+
+np.savetxt(file_dir+'dro1.txt', dro1, header='x y r lon', fmt='%.6f')
+np.savetxt(file_dir+'dro2.txt', dro1, header='x y r lon', fmt='%.6f')
+np.savetxt(file_dir+'dro3.txt', dro1, header='x y r lon', fmt='%.6f')
+np.savetxt(file_dir+'dro4.txt', dro1, header='x y r lon', fmt='%.6f')
+np.savetxt(file_dir+'dro5.txt', dro1, header='x y r lon', fmt='%.6f')
 
 
-######### *** to do - initial conditions plot against minimum distance after 1 revolution to find exact initial conditions
+
 
 
 # ### DRO and planets plot
 # 
 
-# In[6]:
+# In[173]:
 
 
-##plot spacecraft equidistant distribution on DRO 
+#plot spacecraft equidistant distribution on DRO 
 
 #number of SHIELD spacecraft
 nr_sc=8
@@ -481,7 +510,7 @@ plt.show()
 
 # ## Plots for DRO characteristics
 
-# In[7]:
+# In[174]:
 
 
 ########### plot for initial speed and minimum distance to Sun
@@ -521,14 +550,14 @@ ax.set_xlim(0.7, 1.0)
 ax.set_ylim(0,20)
 
 
-# In[8]:
+# In[175]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
 sns.set_style('whitegrid')
 sns.set_context('talk')    
 
-fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15, 8),dpi=100)
+fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(15, 6),dpi=100)
 
 
 min_dro_x1_arr=np.array([np.min(dro_x1),np.min(dro_x2),np.min(dro_x3),np.min(dro_x4),np.min(dro_x5)])
@@ -557,7 +586,6 @@ ax1.plot(x_fit,y_fit1, c='k')
 
 
 print()
-
 
 ####### relationship between minimum distance and widest point in y in longitude
 max_dro_lon_arr=np.array(np.rad2deg([np.max(dro_lon1),np.max(dro_lon2),np.max(dro_lon3),np.max(dro_lon4),np.max(dro_lon5)]))
@@ -618,7 +646,7 @@ ax2.add_patch(box)
 ax2.legend()
 
 
-# In[9]:
+# In[176]:
 
 
 ########## ORBITAL PERIOD Figure
@@ -653,7 +681,7 @@ plt.ylabel('longitude')
 
 # ### plot combined with planets in HEEQ
 
-# In[10]:
+# In[177]:
 
 
 sns.set_style('darkgrid')
@@ -711,7 +739,7 @@ plt.savefig('results/dro_all_polar.png', dpi=300,bbox_inches='tight')
 
 # ### same plot zoomed in with spacecraft distribution
 
-# In[11]:
+# In[178]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -791,19 +819,13 @@ plt.tight_layout()
 plt.savefig(f'results/dro_all_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tight')
 
 
-# In[ ]:
-
-
-
-
-
 # ### Animations
 # use ffmpeg
 # 
 # plot spacecraft equidistant distribution on DRO 
 # 
 
-# In[12]:
+# In[161]:
 
 
 sns.set_style('darkgrid')
@@ -899,64 +921,59 @@ factor=12
 make_frame(500)
 
 
-# In[13]:
+# In[162]:
 
 
-print()
-print('make animation')
-print()
+make_animation=False
+
+if make_animation:
+
+    print()
+    print('make animation')
+    print()
+
+    ffmpeg_path=''
+    outputdirectory = 'results/frames'
+    animdirectory   = 'results/'
+
+    factor=12
+    i_all=int(365*24/factor) #365*24 for all frames for 1 year, 1 hour resolution, divided by factor
+    counter=[i for i in range(i_all)]
+
+    print('number of frames',i_all)
+
+    used=8
+    print('Using multiprocessing, nr of cores',mp.cpu_count(), \
+          'with nr of processes used: ',used)
+
+    #define pool using fork and number of processes
+    pool=mp.get_context('fork').Pool(processes=used)
+    # Map the worker function onto the parameters    
+    t0 = time.time()
+    pool.map(make_frame, counter) #or use apply_async?,imap
+    pool.close()
+    pool.join()     
+    t1 = time.time()
 
 
-ffmpeg_path=''
-outputdirectory = 'results/frames'
-animdirectory   = 'results/'
-
-factor=12
-i_all=int(365*24/factor) #365*24 for all frames for 1 year, 1 hour resolution, divided by factor
-counter=[i for i in range(i_all)]
-
-print('number of frames',i_all)
-
-used=8
-print('Using multiprocessing, nr of cores',mp.cpu_count(), \
-      'with nr of processes used: ',used)
-
-#define pool using fork and number of processes
-pool=mp.get_context('fork').Pool(processes=used)
-# Map the worker function onto the parameters    
-t0 = time.time()
-pool.map(make_frame, counter) #or use apply_async?,imap
-pool.close()
-pool.join()     
-t1 = time.time()
+    print('time in sec: ',np.round((t1-t0),1))
+    print('plots done, frames saved in ',outputdirectory)
 
 
-print('time in sec: ',np.round((t1-t0),1))
-print('plots done, frames saved in ',outputdirectory)
+    movie_filename=f'dro_{nr_sc}'
+    os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/dro%04d.jpg -b:v 5000k \
+         '+str(animdirectory)+'/'+movie_filename+'.mp4 -y -loglevel quiet')    
+    print('movie done, saved in ',animdirectory)
 
-
-# In[14]:
-
-
-movie_filename=f'dro_{nr_sc}'
-os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/dro%04d.jpg -b:v 5000k \
-     '+str(animdirectory)+'/'+movie_filename+'.mp4 -y -loglevel quiet')    
-print('movie done, saved in ',animdirectory)
-
-os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/dro%04d.jpg -b:v 5000k \
-     '+str(animdirectory)+'/'+movie_filename+'.gif -y -loglevel quiet')    
-
-
-
-# In[ ]:
-
+    os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/dro%04d.jpg -b:v 5000k \
+         '+str(animdirectory)+'/'+movie_filename+'.gif -y -loglevel quiet')    
 
 
 
 
 # ### make one movie with HCI coordinates (transform from HEEQ to HCI)
 
-# In[ ]:
+# In[163]:
 
 
 ## TBD
@@ -986,10 +1003,10 @@ os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/dro%04d.jpg -b:v
 
 
 
-# ### load ICMECAT
+# ### load ICMECAT to compare DROs with existing observations
 # 
 
-# In[21]:
+# In[166]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1011,13 +1028,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[38]:
-
-
-
-
-
-# In[49]:
+# In[167]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -1110,15 +1121,27 @@ ax.set_ylim(0, 1.3)
 
 
 ax.legend(bbox_to_anchor=(0.9, 0.9), loc='upper left',fontsize=8)
-plt.figtext(0.8,0.1,f' {nr_sc} DRO spacecraft', color='black', ha='left',fontsize=fsize-4, style='italic')
+#plt.figtext(0.8,0.1,f' {nr_sc} DRO spacecraft', color='black', ha='left',fontsize=fsize-4, style='italic')
 plt.figtext(0.05,0.01,'Austrian Space Weather Office   GeoSphere Austria', color='black', ha='left',fontsize=fsize-4, style='italic')
 plt.figtext(0.99,0.01,'helioforecast.space', color='black', ha='right',fontsize=fsize-4, style='italic')
 
 plt.tight_layout()
 
 
-plt.savefig(f'results/dro_all__icme_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tight')
-plt.savefig(f'results/dro_all_icme_polar_zoom_{nr_sc}.pdf', dpi=300,bbox_inches='tight')
+plt.savefig(f'results/dro_all_icme_polar_zoom.png', dpi=300,bbox_inches='tight')
+plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
