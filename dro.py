@@ -17,18 +17,18 @@
 # ### Issues
 # 
 # - streamline calculation: write out results of function directly as recarrays
+# - each solution needs a time axis (in hours)
 # - distribute spacecraft with better resolution (not days)
 # ---
 # 
 # 
 # ### Ideas
-# - movie in HCI (convert back to x' and y' with omega)
+# - movie in HCI with more spacecraft
 # - plotly plot with clickable positions
-# - plot lead time with shade
 # 
 # 
 
-# In[25]:
+# In[1]:
 
 
 import time
@@ -40,6 +40,10 @@ import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.dates as mdates
 from matplotlib.ticker import MultipleLocator
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.cm as cm
+from matplotlib.patches import Rectangle
+
 import pickle
 import spiceypy
 import pandas as pd
@@ -98,7 +102,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[2]:
+# In[111]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -168,6 +172,7 @@ def get_planet_pos(t,kernels_path, planet):
     position = t, pos[0], pos[1], pos[2], r, lat, lon
     return position
 
+
 def get_planet_positions(time_series,kernels_path,planet):
     positions = []
     for t in time_series:
@@ -177,12 +182,38 @@ def get_planet_positions(time_series,kernels_path,planet):
     return df_positions
 
 
+
+def get_planet_pos_hci(t,kernels_path, planet):
+    if spiceypy.ktotal('ALL') < 1:
+        generic_furnish(kernels_path)
+    pos = spiceypy.spkpos(planet, spiceypy.datetime2et(t), "HCI", "NONE", "SUN")[0]
+    r, lat, lon = cart2sphere_rad(pos[0],pos[1],pos[2])
+    position = t, pos[0], pos[1], pos[2], r, lat, lon
+    return position
+
+
+def get_planet_positions_hci(time_series,kernels_path,planet):
+    positions = []
+    for t in time_series:
+        position = get_planet_pos_hci(t,kernels_path, planet)
+        positions.append(position)
+    df_positions = pd.DataFrame(positions, columns=['time', 'x', 'y', 'z', 'r', 'lat', 'lon'])
+    return df_positions
+
+
+
+
+
 # make Earth Mercury and Venus positions
 generic_furnish(kernels_path)    
 print(kernels_path)
 mercury=get_planet_positions(times,kernels_path, 'MERCURY_BARYCENTER')
 venus=get_planet_positions(times,kernels_path, 'VENUS_BARYCENTER')
 earth=get_planet_positions(times,kernels_path, 'EARTH_BARYCENTER')
+
+earth_hci=get_planet_positions_hci(times,kernels_path, 'EARTH_BARYCENTER')
+
+
 
 #to matplotlib datenumber
 #mercury.time=mdates.date2num(mercury.time)
@@ -197,6 +228,15 @@ fig, ax = plt.subplots(figsize=(8, 3),dpi=100)
 plt.plot(mercury.time,mercury.r,'-')
 plt.plot(venus.time,venus.r,'-')
 plt.plot(earth.time,earth.r,'-')
+plt.plot(earth_hci.time,earth_hci.r,'--')
+
+fig, ax = plt.subplots(figsize=(8, 3),dpi=100)
+plt.plot(earth_hci.time,np.rad2deg(earth_hci.lon))
+plt.plot(earth.time,np.rad2deg(earth.lon))
+
+
+
+
 
 
 # ### CR3BP simulation (circular restricted 3 Body Problem)
@@ -255,7 +295,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation
 
-# In[27]:
+# In[4]:
 
 
 ###################### find dro solutions by trial and error
@@ -268,8 +308,8 @@ initial_vy_array=[]
 x0 = 0.95*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 =  3.0494 # km/s  
-#vy0 =  3.035 # km/s  
+#vy0 =  3.0494 # km/s  this solution is not exact for 2 orbits
+vy0 =  3.035 # km/s  
 [x1,y1]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
@@ -436,7 +476,7 @@ np.savetxt(file_dir+'dro5.txt', dro5, header='x [au] y [au] r [au] lon [rad]', f
 # ### DRO and planets plot
 # 
 
-# In[20]:
+# In[5]:
 
 
 #plot spacecraft equidistant distribution on DRO 
@@ -513,7 +553,7 @@ plt.show()
 
 # ## Plots for DRO characteristics
 
-# In[21]:
+# In[6]:
 
 
 ########### plot for initial speed and minimum distance to Sun
@@ -566,7 +606,7 @@ ax.set_xlim(0.7, 1.0)
 ax.set_ylim(0,20)
 
 
-# In[22]:
+# In[7]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -630,9 +670,6 @@ ax2.plot(x_fit,y_fit2, c='k')
 
 
 
-from matplotlib.patches import Rectangle
-
-
 
 # Rectangle((x_start, y_start), width, height)
 box = Rectangle((0.825, 0), 0.175, 20, 
@@ -663,7 +700,7 @@ ax2.add_patch(box)
 ax2.legend()
 
 
-# In[23]:
+# In[8]:
 
 
 ########## ORBITAL PERIOD Figure
@@ -756,7 +793,7 @@ plt.savefig('results/dro_all_polar.png', dpi=300,bbox_inches='tight')
 
 # ### same plot zoomed in with spacecraft distribution
 
-# In[10]:
+# In[40]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -836,20 +873,20 @@ plt.tight_layout()
 plt.savefig(f'results/dro_all_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tight')
 
 
-# ### Animations
+# ## Animations
 # use ffmpeg
 # 
 # plot spacecraft equidistant distribution on DRO 
 # 
 
-# In[11]:
+# In[41]:
 
 
 sns.set_style('darkgrid')
 sns.set_context('talk')    
 
 ############## number of SHIELD spacecraft #########
-nr_sc=4
+nr_sc=6
 #################################################
 
 
@@ -941,7 +978,7 @@ make_frame(500)
 # In[12]:
 
 
-make_animation=False
+make_animation=True
 
 if make_animation:
 
@@ -988,42 +1025,187 @@ if make_animation:
 
 
 
-# ### make one movie with HCI coordinates (transform from HEEQ to HCI)
+# ### make one movie with HCI coordinates for visualizing how DROs rotate around Earth
+# 
 
-# In[13]:
+# In[158]:
 
 
-## TBD
+#use dro3 at 0.85 au
+#generate Earth in HCI like above but in hours, then add the dros
+
+start=datetime.datetime(2033,1,1)
+end=datetime.datetime(2034,12,31,23)
+
+times = [] 
+dt=1 #time resolution is 1 hour
+# Generate datetimes with increments of dt hours until the end date
+current = start
+while current <= end:
+    times.append(current)
+    current += datetime.timedelta(hours=dt)
+
+earth_hci=get_planet_positions_hci(times,kernels_path, 'EARTH_BARYCENTER')
+
+
+#this is one spacecraft, all the others are phase shifted, i.e. the orbit is not the same in this frame
+dro3_x_hci=(dro3.x-1.0)+earth_hci.x/au
+dro3_y_hci=dro3.y+earth_hci.y/au
+
+dro3_r_hci= np.sqrt(dro3_x_hci**2 + dro3_y_hci**2)
+dro3_lon_hci = np.arctan2(dro3_y_hci, dro3_x_hci)
+
+
+#x_rot = x·cos(ωt) + y·sin(ωt)
+#y_rot = -x·sin(ωt) + y·cos(ωt)
+
+#make time in hour resolution for 2 years
+#mtime= np.arange('2033-01-01', '2035-01-01', dtype='datetime64[h]')
+#mtime_num=(mdates.date2num(mtime)-mdates.date2num(mtime)[0])*24 #convert to hours
+#print(mtime_num)
+#Earth is at 0,0, then move Earth and add dro3.x dro3.y to this
+#earth_x_hci=
+#earth_y_hci=
+# omega is available in rad/s - rad per hour = *3600
+#omega_hour=omega*3600
+
+#dro3_x_hci=dro3.x*np.cos(omega_hour*mtime_num)+dro3.y*np.sin(omega_hour*mtime_num)
+#dro3_y_hci=-dro3.x*np.sin(omega_hour*mtime_num)+dro3.y*np.cos(omega_hour*mtime_num)
+
+
+
+# In[185]:
+
+
+sns.set_style('darkgrid')
+sns.set_context('talk')    
+
+############## number of SHIELD spacecraft #########
+nr_sc=1
+#################################################
+
+
+t_all=365*1*24 # all time datapoints ****** need to set global time resolution better
+interval=int(np.round(t_all/nr_sc)) #to nearest day
+#indices of shield spacecraft equidistant in time over 1 year
+#shield_i=np.arange(0,t_all,interval)
+shield_i=0
+
+print('Number of SHIELD Spacecraft:',nr_sc)
+print('Interval in days:',interval/24)
+print('longitudes:',np.round(np.rad2deg(dro_lon3[shield_i])))
+
+
+def make_frame_hci(i):
+
+
+    fig, ax = plt.subplots(1,figsize=(10, 8),subplot_kw={'projection': 'polar'},dpi=200)    
+
+    fsize=15
+    symsize_planet=60
+    spacecraft_size=10
+
+    ax.text(0,0,'Sun', color='black', ha='center',fontsize=fsize-5,verticalalignment='top')
+    #ax.text(0,1.2,'Earth', color='mediumseagreen', ha='center',fontsize=fsize-5,verticalalignment='center')
+
+    # Sun
+    ax.scatter(0,0,s=200,c='yellow',alpha=1, edgecolors='black', linewidth=0.3)
+    #Earth
+    ax.scatter(earth_hci.lon[shield_i+i*factor], earth_hci.r[shield_i+i*factor], s=symsize_planet, c='mediumseagreen', alpha=1,lw=0,zorder=3,marker=None, label='Earth')  
+    #DRO spacecraft
+    ax.scatter(dro3_lon_hci[shield_i+i*factor], dro3_r_hci[shield_i+i*factor],c='blue', marker='o',s=spacecraft_size)
+
+    #this is the orbit in HCI
+    #ax.plot(dro3_lon_hci, dro3_r_hci,c='blue')
+
+    #1 au circle
+    ax.plot(np.deg2rad(np.arange(0,360)),np.zeros(360)+1,lw=1,alpha=0.5,linestyle='--',c='black', marker=None)
+    ax.plot(np.zeros(11),np.arange(0,1.1,0.1),c='k',lw=1,alpha=0.5,linestyle='--')
+
+    degrees = np.arange(0,360,20)
+    ax.set_xticks(np.radians(degrees))
+    ax.set_xticklabels([f'{d}°' for d in degrees], fontsize=15)
+
+    ax.set_rgrids(np.arange(0.1,1.5,0.1),('0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0','1.1','1.2','1.3','1.4'),angle=50, fontsize=10)
+
+    ax.set_theta_zero_location('E')
+    #ax.set_thetamin(60)      # Start angle in degrees
+    #ax.set_thetamax(-60)
+    ##plt.title('Planet and simulated DRO positions 2028 Jan 1 - 2030 Jan 1')
+    ax.set_ylim(0, 1.35) 
+
+    #ax.set_rgrids((0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2),('0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0','1.1','1.2'), angle=0, fontsize=5, alpha=0.1)
+    #ax.legend(bbox_to_anchor=(0.8, 1), loc='upper left',fontsize=10)
+    plt.tight_layout()
+
+
+    plt.figtext(0.1,0.9,f'1 DRO spacecraft', color='black', ha='left',fontsize=fsize-4, style='italic')
+    plt.figtext(0.1,0.85,f'time:   {np.round(i*factor/24,2)} days', color='black', ha='left',fontsize=fsize-4, style='italic')
+
+    plt.figtext(0.05,0.01,'Austrian Space Weather Office   GeoSphere Austria', color='black', ha='left',fontsize=fsize-4, style='italic')
+    plt.figtext(0.99,0.01,'helioforecast.space', color='black', ha='right',fontsize=fsize-4, style='italic')
+
+    plt.savefig(f'results/frames_hci/dro{i:04d}.jpg', dpi=200,bbox_inches='tight')
+    plt.close()
+    #plt.show()
+
+    return 0
+
+factor=12
+make_frame_hci(100)
 
 
 # In[ ]:
 
 
+make_animation_hci=True
 
+if make_animation_hci:
 
+    print()
+    print('make animation')
+    print()
 
-# In[ ]:
+    ffmpeg_path=''
+    outputdirectory = 'results/frames_hci'
+    animdirectory   = 'results/'
 
+    factor=12
+    i_all=int(365*2*24/factor) #365*24 for all frames for 1 year, 1 hour resolution, divided by factor
+    counter=[i for i in range(i_all)]
 
+    print('number of frames',i_all)
 
+    used=8
+    print('Using multiprocessing, nr of cores',mp.cpu_count(), \
+          'with nr of processes used: ',used)
 
+    #define pool using fork and number of processes
+    pool=mp.get_context('fork').Pool(processes=used)
+    # Map the worker function onto the parameters    
+    t0 = time.time()
+    pool.map(make_frame_hci, counter) #or use apply_async?,imap
+    pool.close()
+    pool.join()     
+    t1 = time.time()
 
-# In[ ]:
+    print('time in sec: ',np.round((t1-t0),1))
+    print('plots done, frames saved in ',outputdirectory)
 
+    movie_filename=f'dro_hci_{nr_sc}'
+    os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/dro%04d.jpg -b:v 5000k \
+         '+str(animdirectory)+'/'+movie_filename+'.mp4 -y -loglevel quiet')    
+    print('movie done, saved in ',animdirectory)
 
-
-
-
-# In[ ]:
-
-
+    os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/dro%04d.jpg -b:v 5000k \
+         '+str(animdirectory)+'/'+movie_filename+'.gif -y -loglevel quiet')    
 
 
 
 # ### load ICMECAT to compare DROs with existing observations
 # 
 
-# In[14]:
+# In[38]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1045,7 +1227,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[15]:
+# In[39]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -1123,7 +1305,7 @@ ax.plot(np.zeros(11),np.arange(0,1.1,0.1),c='k',lw=1,alpha=0.8,linestyle='--')
 
 
 
-degrees = np.arange(-60,60,10)
+degrees = np.arange(-60,60,5)
 ax.set_xticks(np.radians(degrees))
 ax.set_xticklabels([f'{d}°' for d in degrees], fontsize=15)
 
@@ -1147,6 +1329,337 @@ plt.tight_layout()
 
 plt.savefig(f'results/dro_all_icme_polar_zoom.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
+
+
+# ### Plots for lead times
+
+# In[16]:
+
+
+##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
+
+speed=400 #km/s
+leadmax=(1.0-0.7)*au/speed/(3600)
+print(f'lead time for 400 km/s wind for 0.7 au is {leadmax:.2f} hours')
+print('This is the maximum plot range, so it includes Venus')
+
+
+############### plot
+sns.set_style('whitegrid')
+sns.set_context('talk')    
+
+fig, ax = plt.subplots(1,figsize=(12, 6),dpi=100)   
+
+colors = ['red', 'orangered', 'gold', 'limegreen', 'dodgerblue', 'darkviolet', 'purple']
+
+x_locations = [0.75, 0.8, 0.85, 0.9, 0.95, 0.99]
+# Draw dashed vertical lines at each location, and L1
+for x in x_locations:
+    ax.axvline(x=x, color='gray', linestyle='--', linewidth=2)
+
+
+k=0
+for i in [400,600,800,1000,1500,2000,2500]:    
+    speed=i #km/s
+    leaddist=np.linspace(0.7,1.0,100)
+    leadtime=(1.0-leaddist)*au/speed/(3600)
+    #print(leadtime)
+    ax.plot(leaddist,leadtime,label=f'{i} km s$^{{-1}}$',color=colors[k])
+    k=k+1
+
+ax.legend()    
+ax.set_ylabel('Lead time for radially shaped fronts [hours]')
+ax.set_xlabel('DRO spacecraft heliocentric distance [au]')
+ax.set_ylim(0,32)
+ax.set_yticks(np.arange(0,35,2))
+ax.set_xticks(np.arange(0.7,1.0,0.025))
+
+plt.tight_layout()
+
+
+plt.savefig(f'results/dro_lead_time.png', dpi=300,bbox_inches='tight')
+plt.savefig(f'results/dro_lead_time.pdf', dpi=300,bbox_inches='tight')
+
+
+# In[17]:
+
+
+#number of SHIELD spacecraft
+#nr_sc=8
+t_all=365*1*24 # all time datapoints ****** need to set global time resolution better
+interval=int(np.round(t_all/nr_sc)) #to nearest day
+#indices of shield spacecraft equidistant in time over 1 year
+shield_i=np.arange(0,t_all,interval)
+
+print('Number of SHIELD Spacecraft:',nr_sc)
+print('Interval in days:',interval/24)
+print('longitudes:',np.round(np.rad2deg(dro_lon3[shield_i])))
+
+
+sns.set_style('whitegrid')
+sns.set_context('talk')    
+
+fig, ax = plt.subplots(1,figsize=(10, 8),subplot_kw={'projection': 'polar'},dpi=100)    
+
+fsize=15
+symsize_planet=10
+
+#ax.text(0,0,'Sun', color='black', ha='center',fontsize=fsize-5,verticalalignment='top')
+#ax.text(0,1.2,'Earth', color='mediumseagreen', ha='center',fontsize=fsize-5,verticalalignment='center')
+
+# Sun
+#ax.scatter(0,0,s=100,c='yellow',alpha=1, edgecolors='black', linewidth=0.3)
+
+ax.scatter(earth.lon, earth.r, s=symsize_planet, c='mediumseagreen', alpha=1,lw=0,zorder=3,marker=None, label='Earth')  
+ax.plot(venus.lon, venus.r, c='gold', alpha=1,lw=1,zorder=1, marker=None, label='Venus')  
+#ax.plot(mercury.lon, mercury.r, c='grey', alpha=0.5,lw=1,zorder=3, marker=None, label='Mercury')  
+
+ax.plot(dro_lon1, dro_r1,c='black', alpha=0.8,lw=1, markersize=1, label='DRO 0.95 au')
+ax.plot(dro_lon2, dro_r2,c='red', alpha=0.8,lw=1, markersize=1, label='DRO 0.90 au')
+ax.plot(dro_lon3, dro_r3,c='blue', alpha=0.8,lw=1, markersize=1, label='DRO 0.85 au')
+ax.plot(dro_lon4, dro_r4,c='green', alpha=0.8,lw=1, markersize=1, label='DRO 0.80 au')
+ax.plot(dro_lon5, dro_r5,c='orange', alpha=0.8,lw=1, markersize=1, label='DRO 0.75 au')
+
+
+#ax.scatter(dro_lon1[shield_i], dro_r1[shield_i],c='black', marker='o',s=5)
+#ax.scatter(dro_lon2[shield_i], dro_r2[shield_i],c='red', marker='o',s=5)
+#ax.scatter(dro_lon3[shield_i], dro_r3[shield_i],c='blue', marker='o',s=5)
+#ax.scatter(dro_lon4[shield_i], dro_r4[shield_i],c='green', marker='o',s=5)
+#ax.scatter(dro_lon5[shield_i], dro_r5[shield_i],c='orange', marker='o',s=5)
+
+plt.legend(loc=2,fontsize=10)
+#1 au circle
+ax.plot(np.deg2rad(np.arange(0,360)),np.zeros(360)+1,lw=1,alpha=0.8,linestyle='--',c='black', marker=None)
+ax.plot(np.zeros(11),np.arange(0,1.1,0.1),c='k',lw=1,alpha=0.8,linestyle='--')
+
+degrees = np.arange(-35,40,5)
+ax.set_xticks(np.radians(degrees))
+ax.set_xticklabels([f'{d}°' for d in degrees], fontsize=15)
+
+ax.set_rgrids(np.arange(0.7,1.5,0.1),('0.6','0.7','0.8','0.9','1.0','1.1','1.2','1.3'),angle=50, fontsize=10)
+
+
+
+##########################
+
+theta_shade = np.linspace(np.deg2rad(-30), np.deg2rad(30), 50)
+r_min = 0.7
+r_max = 1.0
+n_radial_segments = 50
+
+#define scaling
+#for 0.7 au, how much is it for 400 km/s solar wind, in hours?
+
+speed=400 #km/s
+leadmax=(1.0-0.7)*au/speed/(3600)
+print(f'lead time for 400 km/s wind for 0.7 au is {leadmax:.2f} hours')
+
+#########################
+
+
+
+min_value = -leadmax # Yellow starts at 0.7 au
+max_value = 0 # Red stops at 1.0 au
+
+# Create a colormap from yellow to red
+colors_list = ['yellow', 'orange', 'red']
+cmap = LinearSegmentedColormap.from_list('yellow_red', colors_list, N=n_radial_segments)
+
+# Store patches for colorbar
+norm = plt.Normalize(vmin=min_value, vmax=max_value)
+sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+#sm.set_array([])
+
+for i in range(n_radial_segments):
+
+    # Calculate radial position for this segment
+    r1 = i * (r_max-r_min) / n_radial_segments + r_min
+    r2 = (i + 1) * (r_max-r_min) / n_radial_segments + r_min
+
+    ratio = (i / n_radial_segments)
+    #scaled_value =  min_value + ratio * (max_value - min_value)    )
+    # Get color from colormap
+    color = cmap(ratio)    
+    ax.fill_between(theta_shade, r1, r2, alpha=0.4, color=color, edgecolor='none')
+
+    # Interpolate color 
+    #ratio = i / n_radial_segments    
+    #color = (1-ratio, 1 - ratio, 1-ratio)    #black to white
+    #ax.fill_between(theta_shade, r1, r2, alpha=0.4, color=color, edgecolor='none')
+
+
+# Add colorbar
+cbar = plt.colorbar(sm, ax=ax,location='bottom',shrink=0.5,pad=0.04, aspect=20)
+cbar.set_label('Lead time [hours]',fontsize=10)
+cbar.ax.tick_params(labelsize=12)
+ticks = cbar.get_ticks()
+# convert negative to positive so lead time = positive
+cbar.set_ticks(np.arange(-35,5,5))
+cbar.set_ticklabels([f'{int(abs(tick))}' for tick in ticks])
+
+
+
+ax.set_theta_zero_location('E')
+ax.set_thetamin(35)      # Start angle in degrees
+ax.set_thetamax(-35)
+##plt.title('Planet and simulated DRO positions 2028 Jan 1 - 2030 Jan 1')
+#ax.set_ylim(0, 1.3) 
+
+# cutout in r
+ax.set_rmin(0.60)
+ax.set_rmax(1.30)
+ax.set_rorigin(0)
+
+
+ax.legend(bbox_to_anchor=(0.9, 0.9), loc='upper left',fontsize=10)
+#plt.figtext(0.8,0.1,f' {nr_sc} DRO spacecraft', color='black', ha='left',fontsize=fsize-4, style='italic')
+plt.figtext(0.05,0.01,'Austrian Space Weather Office   GeoSphere Austria', color='black', ha='left',fontsize=fsize-4, style='italic')
+plt.figtext(0.99,0.01,'helioforecast.space', color='black', ha='right',fontsize=fsize-4, style='italic')
+
+################# 
+
+plt.tight_layout()
+
+
+plt.savefig(f'results/dro_all_polar_lead_time.png', dpi=300,bbox_inches='tight')
+plt.savefig(f'results/dro_all_polar_lead_time.pdf', dpi=300,bbox_inches='tight')
+
+
+# ## Analysis of distance to Sun-Earth line (in progress)
+
+# In[18]:
+
+
+#all dro orbits are dro1, dro2, dro3, dro4, dro5
+#break down to time for each spacecraft
+
+#distance to Sun-Earth line
+
+dro3
+
+
+# In[19]:
+
+
+#i_all=int(365*24/factor) #365*24 for all frames for 1 year, 1 hour resolution, divided by factor
+#counter=[i for i in range(i_all)]
+
+
+############## number of SHIELD spacecraft #########
+nr_sc=4
+#################################################
+
+
+t_all=365*1*24 # all time datapoints ****** need to set global time resolution better
+interval=int(np.round(t_all/nr_sc)) #to nearest day
+#indices of shield spacecraft equidistant in time over 1 year
+shield_i=np.arange(0,t_all,interval)
+
+print('Number of SHIELD Spacecraft:',nr_sc)
+print('Interval in days:',interval/24)
+print('longitudes:',np.round(np.rad2deg(dro_lon3[shield_i])))
+
+#indices of each spacecraft at start
+print(shield_i)
+
+colors = ['red', 'orangered', 'gold', 'limegreen', 'dodgerblue', 'darkviolet', 'purple']
+
+dlon=np.rad2deg(dro_lon3)
+
+dtime=np.arange(0,len(dlon),1)/24 #in days
+
+### plot each spacecraft longitude
+
+sns.set_style('whitegrid')
+sns.set_context('talk')    
+
+fig, ax = plt.subplots(1,figsize=(12, 6),dpi=100)   
+
+ax.plot(dtime,dlon)
+ax.plot(dtime[shield_i],dlon[shield_i],marker='o', linestyle='None')
+ax.set_ylabel('longitude [°]')
+ax.set_xlabel('time [days]')
+
+
+#plt.plot(dro_lon3[shield_i])
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
