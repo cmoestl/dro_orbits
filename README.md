@@ -16,7 +16,10 @@ work in progress!
 ### Scripts
 
 
-dro.ipynb: generates numerical solutions for dro orbits and makes plots and animations
+
+**find_dro.ipynb**: finds optimized numerical solutions for dro orbits to provide initial conditions 
+
+**dro.ipynb**: generates numerical solutions for dro orbits with given initial conditions, makes plots and animations for DRO analyses
 
 ---
 
