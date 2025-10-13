@@ -10,7 +10,7 @@
 # 
 # 
 
-# In[87]:
+# In[19]:
 
 
 import time
@@ -74,7 +74,7 @@ kernels_path='kernels'
 os.system('jupyter nbconvert --to script find_dro.ipynb')   
 
 
-# In[88]:
+# In[20]:
 
 
 def cr3bp_equations(t, state):
@@ -124,10 +124,126 @@ def make_dro(initial_state,years):
     return x,y
 
 
+# ### Make test orbits for 2 years
+
+# In[34]:
+
+
+###################### find dro solutions by trial and error
+
+#list for initial conditions
+initial_x0_array=[]
+initial_vy_array=[]
+
+########### solution for 0.95 au is manually found 3.035 km/s; check minimization, Method 1 not quite right for the 0.95 au case
+x0 = 0.85*au  # km (between Sun and Earth)
+y0 = 0  # km
+vx0 = 0  # km/s
+#vy0 =  3.0494 # km/s  this solution is not exact for 2 orbits
+vy0 =  10 # km/s  9.3298
+[x1,y1]=make_dro([x0, y0, vx0, vy0],2)
+initial_x0_array.append(x0/au)
+initial_vy_array.append(vy0)
+
+
+
+########### s
+x0 = 0.85*au  # km (between Sun and Earth)
+y0 = 0  # km
+vx0 = 0  # km/s
+vy0 = 9.3298 # km/s
+
+[x2,y2]=make_dro([x0, y0, vx0, vy0],2)
+initial_x0_array.append(x0/au)
+initial_vy_array.append(vy0)
+
+
+
+########### s
+x0 = 0.85*au  # km (between Sun and Earth)
+y0 = 0  # km
+vx0 = 0  # km/s
+vy0 = 3 # km/s
+
+[x5,y5]=make_dro([x0, y0, vx0, vy0],2)
+initial_x0_array.append(x0/au)
+initial_vy_array.append(vy0)
+
+
+print(initial_x0_array)
+print(initial_vy_array)
+
+
+print('done')
+
+############# conversion for polar plot
+dro_x1=x1
+dro_y1=y1
+dro_r1= np.sqrt(dro_x1**2 + dro_y1**2)
+dro_lon1 = np.arctan2(dro_y1, dro_x1)
+
+dro_x2=x2
+dro_y2=y2
+dro_r2= np.sqrt(dro_x2**2 + dro_y2**2)
+dro_lon5 = np.arctan2(dro_y2, dro_x2)
+
+
+dro_x5=x5
+dro_y5=y5
+dro_r5= np.sqrt(dro_x5**2 + dro_y5**2)
+dro_lon5 = np.arctan2(dro_y5, dro_x5)
+
+
+print('done')
+
+############## quick visual check that the sim worked
+
+sns.set_style('whitegrid')
+sns.set_context('paper')   
+# Create the plot
+fig, ax = plt.subplots(figsize=(10, 10))
+
+#third body
+ax.plot(x1, y1, 'black', linewidth=1, alpha=1.0, label='DRO 1 0.85 au')
+ax.plot(x2, y2, 'green', linewidth=1, alpha=1.0, label='DRO 2 0.85 au')
+#ax.plot(x3, y3, 'blue', linewidth=1, alpha=1.0, label='DRO 3 0.85 au')
+#ax.plot(x4, y4, 'green', linewidth=1, alpha=1.0, label='DRO 4 0.80 au')
+ax.plot(x5, y5, 'blue', linewidth=1, alpha=1.0, label='DRO 3 0.85 au')
+
+
+
+ax.plot(x0/au, y0/au, 'o', color='red', markersize=3, label='Start', zorder=4)
+
+# Plot Sun - fixed at origin shifted by -mu*R
+sun_x = -mu  
+ax.scatter(0,0,s=100,c='yellow',alpha=1, edgecolors='black', linewidth=0.3, label='Sun')
+# Plot Earth - fixed at (1-mu)
+earth_x = (1 - mu) 
+ax.plot(earth_x, 0, 'o', color='blue', markersize=5, label='Earth', zorder=5)
+
+
+# Add distance circles for reference
+circle = plt.Circle((sun_x, 0), 1, fill=True, color='gray', linestyle='--', alpha=0.2, label='< 1 au')
+#circle = plt.Circle((sun_x, 0), 0.72, fill=False, color='gold', linestyle='--', alpha=0.8, label='Venus orbit radius')
+
+
+ax.add_patch(circle)
+# Formatting
+ax.set_xlabel('x (au)', fontsize=12)
+ax.set_ylabel('y (au)', fontsize=12)
+#ax.set_title(f'Circular Restricted 3-Body Problem: Sun-Earth System\n(Rotating Reference Frame, {days} days simulation)', fontsize=14, fontweight='bold')
+ax.legend(loc='upper left', fontsize=12)
+ax.xaxis.set_major_locator(MultipleLocator(0.1))
+ax.yaxis.set_major_locator(MultipleLocator(0.1))
+ax.grid(True, alpha=1.0, linestyle='-')
+ax.set_aspect('equal')
+
+
+
 # #### Method 1: match start and end point after 1 orbital period
 # 
 
-# In[100]:
+# In[14]:
 
 
 ########### start with subsolar distance of the DRO you want to find
