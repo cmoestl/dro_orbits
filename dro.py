@@ -20,22 +20,21 @@
 # - each solution needs a time axis (in hours)
 # - distribute spacecraft with better resolution (not days)
 # - results for distance to the Sun-Earth line or longitude, only for the front spacecraft (can a CME slip through with a high Bz unnoticed?): do this with plotting 1 year of orbit and how many spacecraft are between +/- 5°, +/- 10°, +/- 15°, for different orbit distances and number of spacecraft
-# - finish all movies, cosmetics for HCI animation
+# - finish all movies, cosmetics for HCI animation (e.g. use shade for different spacecraft)
 # ---
 # 
 # 
 # ### Ideas
 # - one more figure needed with distance to Sun-Earth line on the front side - answering how big are the gaps, and how many spacecraft are in between +/-10 °
-# - SHIELD Movies at 0.86 au
-# - movie in HCI with more spacecraft
-# - plotly plot with clickable positions
 # - dro movie with 9 at 0.86 au (SHIELD configuration)
+# - movie in HCI with more spacecraft - finish
+# - plotly plot with clickable positions
 # 
 # 
 # 
 # 
 
-# In[1]:
+# In[ ]:
 
 
 import time
@@ -109,7 +108,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[2]:
+# In[17]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -250,7 +249,7 @@ plt.plot(earth.time,np.rad2deg(earth.lon))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[3]:
+# In[18]:
 
 
 def cr3bp_equations(t, state):
@@ -304,7 +303,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation
 
-# In[4]:
+# In[19]:
 
 
 ###################### find dro solutions by trial and error
@@ -505,7 +504,7 @@ np.savetxt(file_dir+'dro5.txt', dro5, header='x [au] y [au] r [au] lon [rad]', f
 # ### DRO and planets plot
 # 
 
-# In[5]:
+# In[20]:
 
 
 #plot spacecraft equidistant distribution on DRO 
@@ -582,7 +581,7 @@ plt.show()
 
 # ## Plots for DRO characteristics
 
-# In[6]:
+# In[21]:
 
 
 ########### plot for initial speed and minimum distance to Sun
@@ -640,7 +639,7 @@ plt.savefig('results/dro_dmin_vinit.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 
-# In[7]:
+# In[22]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -739,7 +738,7 @@ plt.savefig('results/dro_dmin_max_lon.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 
-# In[8]:
+# In[23]:
 
 
 ########## ORBITAL PERIOD Figure
@@ -779,7 +778,7 @@ plt.show()
 
 # ### plot combined with planets in HEEQ
 
-# In[9]:
+# In[24]:
 
 
 sns.set_style('darkgrid')
@@ -837,7 +836,7 @@ plt.savefig('results/dro_all_polar.png', dpi=300,bbox_inches='tight')
 
 # ### same plot zoomed in with spacecraft distribution
 
-# In[10]:
+# In[25]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -923,7 +922,7 @@ plt.savefig(f'results/dro_all_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tigh
 # plot spacecraft equidistant distribution on DRO 
 # 
 
-# In[11]:
+# In[26]:
 
 
 sns.set_style('darkgrid')
@@ -1021,7 +1020,7 @@ factor=12
 make_frame(500)
 
 
-# In[12]:
+# In[27]:
 
 
 #make_animation=False
@@ -1075,7 +1074,7 @@ if make_animation:
 
 # ## try in HCI with only rotation
 
-# In[13]:
+# In[30]:
 
 
 sns.set_style('darkgrid')
@@ -1093,7 +1092,7 @@ shield_i=np.arange(0,t_all,interval)
 
 print('Number of SHIELD Spacecraft:',nr_sc)
 print('Interval in days:',interval/24)
-print('longitudes:',np.round(np.rad2deg(dro_lon3[shield_i])))
+print('longitudes:',np.rad2deg(dro_lon3[shield_i]))
 
 
 
@@ -1166,7 +1165,7 @@ factor=12
 make_frame_hci(200)
 
 
-# In[14]:
+# In[29]:
 
 
 #make_animation=False
