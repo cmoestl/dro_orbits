@@ -21,6 +21,7 @@
 # - distribute spacecraft with better resolution (not days)
 # - results for distance to the Sun-Earth line or longitude, only for the front spacecraft (can a CME slip through with a high Bz unnoticed?): do this with plotting 1 year of orbit and how many spacecraft are between +/- 5°, +/- 10°, +/- 15°, for different orbit distances and number of spacecraft
 # - finish all movies, cosmetics for HCI animation (e.g. use shade for different spacecraft)
+# - the plane in the movies is actually the ecliptic! make this consistent, there is a tilt to HEEQ which is the symmetry plane of the Sun, so there could be effects of latitude on the east and west side
 # ---
 # 
 # 
@@ -29,6 +30,7 @@
 # - dro movie with 9 at 0.86 au (SHIELD configuration)
 # - movie in HCI with more spacecraft - finish
 # - plotly plot with clickable positions
+# 
 # 
 # 
 # 
