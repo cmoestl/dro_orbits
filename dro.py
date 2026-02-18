@@ -9,7 +9,7 @@
 # Authors: C. Möstl, Austrian Space Weather Office, GeoSphere Austria    
 # https://bsky.app/profile/chrisoutofspace.bsky.social, https://github.com/cmoestl
 # 
-# last update: November 2025
+# last update: February 2026
 #  
 # uses conda environment *dro* (for environment file, see folder env)
 # 
@@ -30,13 +30,14 @@
 # - dro movie with 9 at 0.86 au (SHIELD configuration)
 # - movie in HCI with more spacecraft - finish
 # - plotly plot with clickable positions
-# 
+# - 3D plot with DROs
+# - RL factor plot map
 # 
 # 
 # 
 # 
 
-# In[ ]:
+# In[1]:
 
 
 import time
@@ -110,7 +111,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[17]:
+# In[2]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -251,7 +252,7 @@ plt.plot(earth.time,np.rad2deg(earth.lon))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[18]:
+# In[3]:
 
 
 def cr3bp_equations(t, state):
@@ -305,7 +306,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation
 
-# In[19]:
+# In[4]:
 
 
 ###################### find dro solutions by trial and error
@@ -506,7 +507,7 @@ np.savetxt(file_dir+'dro5.txt', dro5, header='x [au] y [au] r [au] lon [rad]', f
 # ### DRO and planets plot
 # 
 
-# In[20]:
+# In[5]:
 
 
 #plot spacecraft equidistant distribution on DRO 
@@ -583,7 +584,7 @@ plt.show()
 
 # ## Plots for DRO characteristics
 
-# In[21]:
+# In[6]:
 
 
 ########### plot for initial speed and minimum distance to Sun
@@ -641,7 +642,7 @@ plt.savefig('results/dro_dmin_vinit.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 
-# In[22]:
+# In[7]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -740,7 +741,7 @@ plt.savefig('results/dro_dmin_max_lon.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 
-# In[23]:
+# In[8]:
 
 
 ########## ORBITAL PERIOD Figure
@@ -780,7 +781,7 @@ plt.show()
 
 # ### plot combined with planets in HEEQ
 
-# In[24]:
+# In[9]:
 
 
 sns.set_style('darkgrid')
@@ -838,7 +839,7 @@ plt.savefig('results/dro_all_polar.png', dpi=300,bbox_inches='tight')
 
 # ### same plot zoomed in with spacecraft distribution
 
-# In[25]:
+# In[10]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -924,7 +925,7 @@ plt.savefig(f'results/dro_all_polar_zoom_{nr_sc}.png', dpi=300,bbox_inches='tigh
 # plot spacecraft equidistant distribution on DRO 
 # 
 
-# In[26]:
+# In[11]:
 
 
 sns.set_style('darkgrid')
@@ -1022,7 +1023,7 @@ factor=12
 make_frame(500)
 
 
-# In[27]:
+# In[15]:
 
 
 #make_animation=False
@@ -1076,7 +1077,7 @@ if make_animation:
 
 # ## try in HCI with only rotation
 
-# In[30]:
+# In[16]:
 
 
 sns.set_style('darkgrid')
@@ -1167,11 +1168,11 @@ factor=12
 make_frame_hci(200)
 
 
-# In[29]:
+# In[17]:
 
 
-#make_animation=False
-make_animation=True
+make_animation=False
+#make_animation=True
 
 
 if make_animation:
@@ -1227,7 +1228,7 @@ if make_animation:
 # new version: just add longitude to all dro spacecraft
 # 
 
-# In[81]:
+# In[18]:
 
 
 #use dro_shield at 0.86 au
@@ -1288,7 +1289,7 @@ dro3_lon_hci = np.arctan2(dro3_y_hci, dro3_x_hci)
 
 
 
-# In[84]:
+# In[19]:
 
 
 sns.set_style('darkgrid')
@@ -1374,7 +1375,7 @@ factor=12
 make_frame_hci(100)
 
 
-# In[15]:
+# In[20]:
 
 
 make_animation_hci=False
@@ -1424,7 +1425,7 @@ if make_animation_hci:
 # ### load ICMECAT to compare DROs with existing observations
 # 
 
-# In[16]:
+# In[21]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1446,7 +1447,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[17]:
+# In[22]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -1552,7 +1553,7 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 
 # ### Plots for lead times
 
-# In[18]:
+# In[23]:
 
 
 ##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
@@ -1600,7 +1601,7 @@ plt.savefig(f'results/dro_lead_time.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/dro_lead_time.pdf', dpi=300,bbox_inches='tight')
 
 
-# In[19]:
+# In[24]:
 
 
 #number of SHIELD spacecraft
@@ -1746,7 +1747,7 @@ plt.savefig(f'results/dro_all_polar_lead_time.pdf', dpi=300,bbox_inches='tight')
 
 # ## Analysis of distance to Sun-Earth line (in progress)
 
-# In[20]:
+# In[25]:
 
 
 #all dro orbits are dro1, dro2, dro3, dro4, dro5
@@ -1757,7 +1758,7 @@ plt.savefig(f'results/dro_all_polar_lead_time.pdf', dpi=300,bbox_inches='tight')
 dro3
 
 
-# In[21]:
+# In[26]:
 
 
 #i_all=int(365*24/factor) #365*24 for all frames for 1 year, 1 hour resolution, divided by factor
@@ -1809,11 +1810,7 @@ ax.set_xlabel('time [days]')
 
 
 
-# In[ ]:
-
-
-
-
+# ## map of radial longitude factor
 
 # In[ ]:
 
