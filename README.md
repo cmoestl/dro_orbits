@@ -5,9 +5,12 @@
 
 Author: C. Möstl, Austrian Space Weather Office, GeoSphere Austria
 
-Last update: October 2025
+Last update: April
 
-work in progress!
+Sample distant retrograde orbits in HEE are available in folder "orbit_files", this is work in progress!
+
+If you want to use this, please contact me.
+
 
 
 ---

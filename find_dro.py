@@ -10,7 +10,7 @@
 # 
 # 
 
-# In[35]:
+# In[1]:
 
 
 import time
@@ -74,7 +74,7 @@ kernels_path='kernels'
 os.system('jupyter nbconvert --to script find_dro.ipynb')   
 
 
-# In[20]:
+# In[2]:
 
 
 def cr3bp_equations(t, state):
@@ -126,7 +126,7 @@ def make_dro(initial_state,years):
 
 # ### Make test orbits for 2 years
 
-# In[34]:
+# In[14]:
 
 
 ###################### find dro solutions by trial and error
@@ -148,10 +148,10 @@ initial_vy_array.append(vy0)
 
 
 ########### s
-x0 = 0.85*au  # km (between Sun and Earth)
+x0 = 0.86*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 9.3298 # km/s
+vy0 = 8.6773 # km/s
 
 [x2,y2]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
@@ -160,7 +160,7 @@ initial_vy_array.append(vy0)
 
 
 ########### s
-x0 = 0.85*au  # km (between Sun and Earth)
+x0 = 0.86*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
 vy0 = 3 # km/s
@@ -204,11 +204,11 @@ sns.set_context('paper')
 fig, ax = plt.subplots(figsize=(10, 10))
 
 #third body
-ax.plot(x1, y1, 'black', linewidth=1, alpha=1.0, label='DRO 1 0.85 au')
-ax.plot(x2, y2, 'green', linewidth=1, alpha=1.0, label='DRO 2 0.85 au')
+ax.plot(x1, y1, 'black', linewidth=1, alpha=1.0, label='DRO 1 0.86 au')
+ax.plot(x2, y2, 'green', linewidth=1, alpha=1.0, label='DRO 2 0.86 au')
 #ax.plot(x3, y3, 'blue', linewidth=1, alpha=1.0, label='DRO 3 0.85 au')
 #ax.plot(x4, y4, 'green', linewidth=1, alpha=1.0, label='DRO 4 0.80 au')
-ax.plot(x5, y5, 'blue', linewidth=1, alpha=1.0, label='DRO 3 0.85 au')
+ax.plot(x5, y5, 'blue', linewidth=1, alpha=1.0, label='DRO 3 0.86 au')
 
 
 
@@ -243,11 +243,11 @@ ax.set_aspect('equal')
 # #### Method 1: match start and end point after 1 orbital period
 # 
 
-# In[14]:
+# In[11]:
 
 
 ########### start with subsolar distance of the DRO you want to find
-x0 = 0.90*au  # km (between Sun and Earth)
+x0 = 0.86*au  # km (between Sun and Earth)
 y0 = 0
 vx0 = 0
 
@@ -256,7 +256,7 @@ vx0 = 0
 resolution=500 
 
 #retrograde orbits start with positive vy
-vy0_arr=np.linspace(6.0,6.2,resolution)
+vy0_arr=np.linspace(6.0,10.0,resolution)
 
 #prograde check
 #vy0_arr=-np.linspace(0.0,20.0,resolution)
@@ -273,7 +273,7 @@ distance=np.array(distance)
 print(vy0_arr[-10:-1])
 
 
-# In[101]:
+# In[12]:
 
 
 sns.set_style('whitegrid')
@@ -323,6 +323,10 @@ plt.show(fig)
 # 
 # y0= 0.90 - > vy0 = 6.1297 km/s
 # 
+# ### ESA SHIELD
+# y0= 0.86 - > vy0 = 8.6773 km/s
+# 
+# 
 # y0= 0.85 - > vy0 = 9.3298 km/s
 # 
 # y0= 0.80 - > vy0 = 12.6525 km/s
@@ -335,7 +339,7 @@ plt.show(fig)
 # #### Method 2: match 2 orbital periods and minimize their shape deviation
 # 
 
-# In[ ]:
+# In[6]:
 
 
 **develop: match 2 orbital periods = stability**
@@ -349,4 +353,10 @@ y0= 0.85 - > vy0 = km/s
 y0= 0.80 - > vy0 =  km/s
 
 y0= 0.75 - > vy0 =  km/s
+
+
+# In[ ]:
+
+
+
 

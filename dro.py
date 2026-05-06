@@ -9,7 +9,7 @@
 # Authors: C. Möstl, Austrian Space Weather Office, GeoSphere Austria    
 # https://bsky.app/profile/chrisoutofspace.bsky.social, https://github.com/cmoestl
 # 
-# last update: February 2026
+# last update: April 2026
 #  
 # uses conda environment *dro* (for environment file, see folder env)
 # 
@@ -22,6 +22,9 @@
 # - results for distance to the Sun-Earth line or longitude, only for the front spacecraft (can a CME slip through with a high Bz unnoticed?): do this with plotting 1 year of orbit and how many spacecraft are between +/- 5°, +/- 10°, +/- 15°, for different orbit distances and number of spacecraft
 # - finish all movies, cosmetics for HCI animation (e.g. use shade for different spacecraft)
 # - the plane in the movies is actually the ecliptic! make this consistent, there is a tilt to HEEQ which is the symmetry plane of the Sun, so there could be effects of latitude on the east and west side
+# - Radial longitudinal diff (RLD) plot map - every event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
+# - SHIELD is planned for 0.86 au (0.14 au upstream), HENON for 0.918 au (0.082 upstream)
+# 
 # ---
 # 
 # 
@@ -30,14 +33,15 @@
 # - dro movie with 9 at 0.86 au (SHIELD configuration)
 # - movie in HCI with more spacecraft - finish
 # - plotly plot with clickable positions
-# - 3D plot with DROs
-# - RL factor plot map
+# - 3D plot with DROs so one can see the ecliptic
+# - DROs around Venus or Mercury - how do they look like? how long during one year would they be useful?
+# - Could one make a wide DRO that avoids Venus by timing it well?
 # 
 # 
 # 
 # 
 
-# In[1]:
+# In[2]:
 
 
 import time
@@ -111,7 +115,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[2]:
+# In[3]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -252,7 +256,7 @@ plt.plot(earth.time,np.rad2deg(earth.lon))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[3]:
+# In[4]:
 
 
 def cr3bp_equations(t, state):
@@ -306,7 +310,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation
 
-# In[4]:
+# In[14]:
 
 
 ###################### find dro solutions by trial and error
@@ -361,6 +365,20 @@ initial_x0_array.append(x0/au)
 initial_vy_array.append(vy0)
 
 
+########## ESA HENON at 0.918 au
+########### solution for 0.918 au is 5.0060 km/s #from minimization analysis
+x0 = 0.918*au  # km (between Sun and Earth)
+y0 = 0  # km
+vx0 = 0  # km/s
+vy0 = 5.0060 # km/s
+
+[xh1,yh1]=make_dro([x0, y0, vx0, vy0],2)
+initial_x0_array.append(x0/au)
+initial_vy_array.append(vy0)
+
+
+
+
 
 ########### solution for 0.8 au is 12.65265 km/s
 x0 = 0.8*au  # km (between Sun and Earth)
@@ -405,10 +423,17 @@ dro_y3=y3
 dro_r3= np.sqrt(dro_x3**2 + dro_y3**2)
 dro_lon3 = np.arctan2(dro_y3, dro_x3)
 
+#SHIELD
 dro_xs1=xs1
 dro_ys1=ys1
 dro_rs1= np.sqrt(dro_xs1**2 + dro_ys1**2)
 dro_lons1 = np.arctan2(dro_ys1, dro_xs1)
+
+#HENON
+dro_xh1=xh1
+dro_yh1=yh1
+dro_rh1= np.sqrt(dro_xh1**2 + dro_yh1**2)
+dro_lonh1 = np.arctan2(dro_yh1, dro_xh1)
 
 dro_x4=x4
 dro_y4=y4
@@ -435,6 +460,7 @@ ax.plot(x1, y1, 'black', linewidth=1, alpha=1.0, label='DRO 1 0.95 au')
 ax.plot(x2, y2, 'red', linewidth=1, alpha=1.0, label='DRO 2 0.90 au')
 ax.plot(x3, y3, 'blue', linewidth=1, alpha=1.0, label='DRO 3 0.85 au')
 ax.plot(xs1, ys1, 'purple', linewidth=1, alpha=1.0, label='DRO SHIELD1 0.86 au')
+ax.plot(xh1, yh1, 'royalblue', linewidth=1, alpha=1.0, label='DRO HENON1 0.918 au')
 ax.plot(x4, y4, 'green', linewidth=1, alpha=1.0, label='DRO 4 0.80 au')
 ax.plot(x5, y5, 'orange', linewidth=1, alpha=1.0, label='DRO 5 0.75 au')
 
@@ -507,7 +533,7 @@ np.savetxt(file_dir+'dro5.txt', dro5, header='x [au] y [au] r [au] lon [rad]', f
 # ### DRO and planets plot
 # 
 
-# In[5]:
+# In[16]:
 
 
 #plot spacecraft equidistant distribution on DRO 
@@ -537,6 +563,8 @@ ax.plot(x3, y3, 'blue', linewidth=1, alpha=1.0, label='DRO 3 0.85 au')
 ax.plot(x4, y4, 'green', linewidth=1, alpha=1.0, label='DRO 4 0.80 au')
 ax.plot(x5, y5, 'orange', linewidth=1, alpha=1.0, label='DRO 5 0.75 au')
 
+ax.plot(xs1, ys1, 'purple', linewidth=1, alpha=1.0, label='DRO SHIELD1 0.86 au')
+ax.plot(xh1, yh1, 'royalblue', linewidth=1, alpha=1.0, label='DRO HENON1 0.918 au')
 
 #with SHIELD distribution
 ax.scatter(x1[shield_i],y1[shield_i],marker='o',c='black')
@@ -584,7 +612,7 @@ plt.show()
 
 # ## Plots for DRO characteristics
 
-# In[6]:
+# In[17]:
 
 
 ########### plot for initial speed and minimum distance to Sun
@@ -642,7 +670,7 @@ plt.savefig('results/dro_dmin_vinit.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 
-# In[7]:
+# In[8]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -741,7 +769,7 @@ plt.savefig('results/dro_dmin_max_lon.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 
-# In[8]:
+# In[9]:
 
 
 ########## ORBITAL PERIOD Figure
@@ -781,7 +809,7 @@ plt.show()
 
 # ### plot combined with planets in HEEQ
 
-# In[9]:
+# In[19]:
 
 
 sns.set_style('darkgrid')
@@ -805,6 +833,7 @@ ax.plot(venus.lon, venus.r, c='gold', alpha=1,lw=1,zorder=3, marker=None, label=
 ax.plot(mercury.lon, mercury.r, c='grey', alpha=0.5,lw=1,zorder=3, marker=None, label='Mercury')  
 
 ax.plot(dro_lon1, dro_r1,c='black', alpha=0.8,lw=1, markersize=1, label='DRO 0.95 au')
+ax.plot(dro_lonh1, dro_rh1,c='royalblue', alpha=0.8,lw=1, markersize=1, label='DRO 0.85 au')
 ax.plot(dro_lon2, dro_r2,c='red', alpha=0.8,lw=1, markersize=1, label='DRO 0.90 au')
 ax.plot(dro_lon3, dro_r3,c='blue', alpha=0.8,lw=1, markersize=1, label='DRO 0.85 au')
 ax.plot(dro_lon4, dro_r4,c='green', alpha=0.8,lw=1, markersize=1, label='DRO 0.80 au')
@@ -835,11 +864,12 @@ plt.figtext(0.99,0.01,'helioforecast.space', color='black', ha='right',fontsize=
 
 
 plt.savefig('results/dro_all_polar.png', dpi=300,bbox_inches='tight')
+plt.savefig('results/dro_all_polar.pdf', dpi=300,bbox_inches='tight')
 
 
 # ### same plot zoomed in with spacecraft distribution
 
-# In[10]:
+# In[11]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -1023,7 +1053,7 @@ factor=12
 make_frame(500)
 
 
-# In[15]:
+# In[12]:
 
 
 #make_animation=False
@@ -1077,7 +1107,7 @@ if make_animation:
 
 # ## try in HCI with only rotation
 
-# In[16]:
+# In[13]:
 
 
 sns.set_style('darkgrid')
@@ -1168,7 +1198,7 @@ factor=12
 make_frame_hci(200)
 
 
-# In[17]:
+# In[14]:
 
 
 make_animation=False
@@ -1228,7 +1258,7 @@ if make_animation:
 # new version: just add longitude to all dro spacecraft
 # 
 
-# In[18]:
+# In[15]:
 
 
 #use dro_shield at 0.86 au
@@ -1289,7 +1319,7 @@ dro3_lon_hci = np.arctan2(dro3_y_hci, dro3_x_hci)
 
 
 
-# In[19]:
+# In[16]:
 
 
 sns.set_style('darkgrid')
@@ -1375,7 +1405,7 @@ factor=12
 make_frame_hci(100)
 
 
-# In[20]:
+# In[17]:
 
 
 make_animation_hci=False
@@ -1425,7 +1455,7 @@ if make_animation_hci:
 # ### load ICMECAT to compare DROs with existing observations
 # 
 
-# In[21]:
+# In[18]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1447,7 +1477,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[22]:
+# In[19]:
 
 
 ##plot spacecraft equidistant distribution on DRO 
@@ -1553,7 +1583,7 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 
 # ### Plots for lead times
 
-# In[23]:
+# In[20]:
 
 
 ##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
@@ -1601,7 +1631,7 @@ plt.savefig(f'results/dro_lead_time.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/dro_lead_time.pdf', dpi=300,bbox_inches='tight')
 
 
-# In[24]:
+# In[21]:
 
 
 #number of SHIELD spacecraft
@@ -1676,8 +1706,6 @@ print(f'lead time for 400 km/s wind for 0.7 au is {leadmax:.2f} hours')
 
 #########################
 
-
-
 min_value = -leadmax # Yellow starts at 0.7 au
 max_value = 0 # Red stops at 1.0 au
 
@@ -1747,7 +1775,7 @@ plt.savefig(f'results/dro_all_polar_lead_time.pdf', dpi=300,bbox_inches='tight')
 
 # ## Analysis of distance to Sun-Earth line (in progress)
 
-# In[25]:
+# In[22]:
 
 
 #all dro orbits are dro1, dro2, dro3, dro4, dro5
@@ -1758,7 +1786,7 @@ plt.savefig(f'results/dro_all_polar_lead_time.pdf', dpi=300,bbox_inches='tight')
 dro3
 
 
-# In[26]:
+# In[23]:
 
 
 #i_all=int(365*24/factor) #365*24 for all frames for 1 year, 1 hour resolution, divided by factor
@@ -1810,60 +1838,167 @@ ax.set_xlabel('time [days]')
 
 
 
-# ## map of radial longitude factor
+# ## map of radial longitude spatial scale difference
 
-# In[ ]:
-
-
+# In[24]:
 
 
+#number of SHIELD spacecraft
+#nr_sc=8
+t_all=365*1*24 # all time datapoints ****** need to set global time resolution better
+interval=int(np.round(t_all/nr_sc)) #to nearest day
+#indices of shield spacecraft equidistant in time over 1 year
+shield_i=np.arange(0,t_all,interval)
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
+print('Number of SHIELD Spacecraft:',nr_sc)
+print('Interval in days:',interval/24)
+print('longitudes:',np.round(np.rad2deg(dro_lon3[shield_i])))
 
 
+sns.set_style('whitegrid')
+sns.set_context('talk')    
+
+fig, ax = plt.subplots(1,figsize=(15, 12),subplot_kw={'projection': 'polar'},dpi=100)    
+
+fsize=15
+symsize_planet=10
+
+#ax.text(0,0,'Sun', color='black', ha='center',fontsize=fsize-5,verticalalignment='top')
+#ax.text(0,1.2,'Earth', color='mediumseagreen', ha='center',fontsize=fsize-5,verticalalignment='center')
+
+# Sun
+#ax.scatter(0,0,s=100,c='yellow',alpha=1, edgecolors='black', linewidth=0.3)
+
+ax.scatter(earth.lon, earth.r, s=symsize_planet, c='mediumseagreen', alpha=1,lw=0,zorder=3,marker=None, label='Earth')  
+ax.plot(venus.lon, venus.r, c='gold', alpha=1,lw=1,zorder=1, marker=None, label='Venus')  
+#ax.plot(mercury.lon, mercury.r, c='grey', alpha=0.5,lw=1,zorder=3, marker=None, label='Mercury')  
+
+#plt.legend(loc=2,fontsize=10)
+#1 au circle
+ax.plot(np.deg2rad(np.arange(0,360)),np.zeros(360)+1,lw=1,alpha=0.8,linestyle='--',c='black', marker=None)
+ax.plot(np.zeros(11),np.arange(0,1.1,0.1),c='k',lw=1,alpha=0.8,linestyle='--')
+
+###################################################
+plot_dro=True
+
+if plot_dro:
+
+    ax.plot(dro_lon1, dro_r1,c='black', alpha=0.8,lw=1, markersize=1, label='DRO 0.95 au')
+    ax.plot(dro_lon2, dro_r2,c='red', alpha=0.8,lw=1, markersize=1, label='DRO 0.90 au')
+    ax.plot(dro_lon3, dro_r3,c='blue', alpha=0.8,lw=2, markersize=1, label='DRO 0.85 au')
+    ax.plot(dro_lon4, dro_r4,c='green', alpha=0.8,lw=1, markersize=1, label='DRO 0.80 au')
+    ax.plot(dro_lon5, dro_r5,c='orange', alpha=0.8,lw=1, markersize=1, label='DRO 0.75 au')
 
 
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
+    #ax.scatter(dro_lon1[shield_i], dro_r1[shield_i],c='black', marker='o',s=5)
+    #ax.scatter(dro_lon2[shield_i], dro_r2[shield_i],c='red', marker='o',s=5)
+    #ax.scatter(dro_lon3[shield_i], dro_r3[shield_i],c='blue', marker='o',s=5)
+    #ax.scatter(dro_lon4[shield_i], dro_r4[shield_i],c='green', marker='o',s=5)
+    #ax.scatter(dro_lon5[shield_i], dro_r5[shield_i],c='orange', marker='o',s=5)
 
 
+################################
 
+plot_icmecat=True
 
+if plot_icmecat:
 
-# In[ ]:
+    ####### ICMECAT events
 
+    ms=5
+    al=0.6
 
+    #ax.plot(np.radians(ic.mo_sc_long_heeq[iuly]),ic.mo_sc_heliodistance[iuly],'o',markersize=ms,c='brown', alpha=al, label='Ulysses')
+    #ax.plot(np.radians(ic.mo_sc_long_heeq[imav]),ic.mo_sc_heliodistance[imav],'o',markersize=ms,c='orangered', alpha=al, label='MAVEN')
 
+    #only inner heliosphere
+    ax.plot(np.radians(ic.mo_sc_long_heeq[imes]),ic.mo_sc_heliodistance[imes],'o',markersize=ms,c='coral', alpha=al,label='MESSENGER')
+    ax.plot(np.radians(ic.mo_sc_long_heeq[ivex]),ic.mo_sc_heliodistance[ivex],'o',markersize=ms,c='black', markerfacecolor='orange', alpha=al,label='Venus Express')
+    ax.plot(np.radians(ic.mo_sc_long_heeq[istb]),ic.mo_sc_heliodistance[istb],'o',markersize=ms,c='royalblue', alpha=al,label='STEREO-B')
+    #ax.plot(np.radians(ic.mo_sc_long_heeq[ijun]),ic.mo_sc_heliodistance[ijun],'o',markersize=ms,c='black',markerfacecolor='yellow',alpha=al,label='Juno')
 
+    #ax3.plot(ic.mo_sc_heliodistance[ijun],ic.mo_bmean[ijun],'o', c='black',markerfacecolor='yellow', alpha=al,ms=ms, label='Juno')
 
-# In[ ]:
+    ax.plot(np.radians(ic.mo_sc_long_heeq[ista]),ic.mo_sc_heliodistance[ista],'o',markersize=ms, c='red', alpha=al, label='STEREO-A')
+    ax.plot(np.radians(ic.mo_sc_long_heeq[iwin]),ic.mo_sc_heliodistance[iwin],'o',markersize=ms, c='mediumseagreen', alpha=al, label='Wind')
+    ax.plot(np.radians(ic.mo_sc_long_heeq[ipsp]),ic.mo_sc_heliodistance[ipsp],'o',markersize=ms, c='black', alpha=al,label='Parker Solar Probe')
+    ax.plot(np.radians(ic.mo_sc_long_heeq[isol]),ic.mo_sc_heliodistance[isol],'o',markersize=ms, c='black',markerfacecolor='white', alpha=al, label='Solar Orbiter')
+    ax.plot(np.radians(ic.mo_sc_long_heeq[ibep]),ic.mo_sc_heliodistance[ibep],'o',markersize=ms, c='darkblue',markerfacecolor='lightgrey', alpha=al, label='BepiColombo')
 
+    #plt.legend(loc=2,fontsize=10)
+    #1 au circle
+    #ax.plot(np.deg2rad(np.arange(0,360)),np.zeros(360)+1,lw=1,alpha=0.8,linestyle='--',c='black', marker=None)
+    #ax.plot(np.zeros(11),np.arange(0,1.1,0.1),c='k',lw=1,alpha=0.8,linestyle='--')
 
+############    
 
+########################## CALCULATE radial longitudinal difference map
+#radial longitude difference
 
+def diff_radial_longitudinal(R, THETA):
+    rf=1-R
+    lf=(2*np.pi*R)/360*np.abs(np.rad2deg(THETA))
+    return rf-lf
 
-# In[ ]:
+r_min = 0.3
+r_max = 1.0
+n_r = 500
+n_t = 500
 
+#make a polar grid
+r     = np.linspace(r_min, r_max, n_r)
+theta = np.linspace(-np.pi/6, np.pi/6, n_t) # in radians, up to 30°
+R, THETA = np.meshgrid(r, theta)
 
+F=diff_radial_longitudinal(R,THETA)
 
+CMAP       = "plasma" #inferno, magma, viridis, plasma
+
+level1=np.arange(-1.1,1.2,0.1)
+cf = ax.contourf(THETA, R, F, levels=level1, cmap=CMAP, alpha=0.8,zorder=0, vmin=-1, vmax=1)
+#cl = ax.contour(THETA, R, F, levels=15, colors="white", linewidths=0.35, alpha=0.35)
+#zero level
+ax.contour(THETA, R, F, levels=[0], colors="black", linewidths=1.0, alpha=0.9)
+
+cbar = plt.colorbar(cf, ax=ax,location='right',shrink=0.5,pad=0, aspect=15)
+cbar.set_label('RLD [au]',fontsize=10)
+cbar.ax.tick_params(labelsize=12)
+ticks = cbar.get_ticks()
+
+################# 
+
+degrees = np.arange(-35,40,5)
+ax.set_xticks(np.radians(degrees))
+ax.set_xticklabels([f'{d}°' for d in degrees], fontsize=15)
+#ax.set_rgrids(np.arange(0.4,1.5,0.1),('0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0','1.1','1.2','1.3'),angle=50, fontsize=10, zorder=5)
+#rtick_locs=np.arange(0.4,1.2,0.1)
+#rtick_labels=('0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0')
+#ax.set_rgrids(rtick_locs,rtick_labels)#,angle=50, fontsize=5, zorder=5)
+
+#ax.set_yticklabels([])
+#for loc, lbl in zip(rtick_locs, rtick_labels):
+#    ax.text(0., loc, lbl, ha='center', va='top', fontsize=16)
+
+ax.set_theta_zero_location('E')
+ax.set_thetamin(35)      # Start angle in degrees
+ax.set_thetamax(-35)
+##plt.title('Planet and simulated DRO positions 2028 Jan 1 - 2030 Jan 1')
+#ax.set_ylim(0, 1.3) 
+
+# cutout in r
+ax.set_rmin(0.30)
+ax.set_rmax(1.10)
+ax.set_rorigin(0)
+
+ax.legend(bbox_to_anchor=(0.01, 0.99), loc='upper left',fontsize=10)
+#plt.figtext(0.8,0.1,f' {nr_sc} DRO spacecraft', color='black', ha='left',fontsize=fsize-4, style='italic')
+plt.figtext(0.05,0.01,'Austrian Space Weather Office   GeoSphere Austria', color='black', ha='left',fontsize=fsize-4, style='italic')
+plt.figtext(0.99,0.01,'helioforecast.space', color='black', ha='right',fontsize=fsize-4, style='italic')
+
+plt.tight_layout()
+
+plt.savefig(f'results/dro_RLD.png', dpi=300,bbox_inches='tight')
+plt.savefig(f'results/dro_RLD.pdf', dpi=300,bbox_inches='tight')
 
 
 # In[ ]:
