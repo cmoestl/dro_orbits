@@ -60,7 +60,7 @@ Create a conda environment using the "envs/env_dro.yml", and activate the enviro
 
 ### Demo plot
 
-![DRO sample](results/dro_all_polar.png)
+![DRO sample](results/dro_all_polar_zoom_9.png)
 
 
 
