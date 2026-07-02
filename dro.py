@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## DRO Orbits playground
+# ## DRO Distant retrograde orbits playground
 # 
 # This code generates distant retrograde orbits (DROs) in the Sun-Earth system depending on the distance from the Sun     
 # part of https://github.com/cmoestl/dro_orbits
@@ -9,7 +9,7 @@
 # Authors: C. Möstl, Austrian Space Weather Office, GeoSphere Austria    
 # https://bsky.app/profile/chrisoutofspace.bsky.social, https://github.com/cmoestl
 # 
-# last update: April 2026
+# last update: July 2026
 #  
 # uses conda environment *dro* (for environment file, see folder env)
 # 
@@ -23,7 +23,7 @@
 # - finish all movies, cosmetics for HCI animation (e.g. use shade for different spacecraft)
 # - the plane in the movies is actually the ecliptic! make this consistent, there is a tilt to HEEQ which is the symmetry plane of the Sun, so there could be effects of latitude on the east and west side
 # - Radial longitudinal diff (RLD) plot map - every event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
-# - SHIELD is planned for 0.86 au (0.14 au upstream), HENON for 0.918 au (0.082 upstream)
+# - SHIELD is planned for 0.86 au (0.14 au upstream), HENON for 0.92 au (~0.08 upstream)
 # 
 # ---
 # 
@@ -41,7 +41,7 @@
 # 
 # 
 
-# In[2]:
+# In[1]:
 
 
 import time
@@ -115,7 +115,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[3]:
+# In[2]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -256,7 +256,7 @@ plt.plot(earth.time,np.rad2deg(earth.lon))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[4]:
+# In[3]:
 
 
 def cr3bp_equations(t, state):
@@ -290,165 +290,72 @@ def make_dro(initial_state,years):
     t_span = (0, days * 86400)      # Time span for integration (in seconds)
     t_eval = np.linspace(t_span[0], t_span[1], days*24) #time resolution is 1 hour, need to include better for arbitrary time arrays
 
-    #days = T*years  # Simulate for n years
-    #t_span = (0, int(days * 86400))      # Time span for integration (in seconds)
-    #t_eval = np.linspace(t_span[0], t_span[1], 60*60) #time resolution is 60 sec * 60 min = 1 hour   
-
-
-
-    #print("Integration started")
-    # Solve the differential equations
-    solution = solve_ivp(cr3bp_equations, t_span, initial_state,  t_eval=t_eval, method='DOP853', rtol=1e-10, atol=1e-8)
+    solution = solve_ivp(cr3bp_equations, t_span, initial_state,  t_eval=t_eval, method='DOP853', rtol=1e-10, atol=1e-8)     # Solve the differential equations
 
     # Extract trajectory, convert to au
     x = solution.y[0]/au; y = solution.y[1]/au
 
-    #print("Integration done")
-
     return x,y
 
 
-# ### Numerical simulation
+# ### Numerical simulation of all DROs
 
-# In[14]:
-
-
-###################### find dro solutions by trial and error
-
-#list for initial conditions
-initial_x0_array=[]
-initial_vy_array=[]
-
-########### solution for 0.95 au is manually found 3.035 km/s; check minimization, Method 1 not quite right for the 0.95 au case
-x0 = 0.95*au  # km (between Sun and Earth)
-y0 = 0  # km
-vx0 = 0  # km/s
-#vy0 =  3.0494 # km/s  this solution is not exact for 2 orbits
-vy0 =  3.035 # km/s  
-[x1,y1]=make_dro([x0, y0, vx0, vy0],2)
-initial_x0_array.append(x0/au)
-initial_vy_array.append(vy0)
+# In[33]:
 
 
-########### solution for 0.9 au is 6.13 km/s manually
-x0 = 0.90*au  # km (between Sun and Earth)
-y0 = 0  # km
-vx0 = 0  # km/s
-vy0 = 6.1297 # km/s   ##from find_dro
-[x2,y2]=make_dro([x0, y0, vx0, vy0],2)
-initial_x0_array.append(x0/au)
-initial_vy_array.append(vy0)
+#list for initial conditions for dmin;x and vinit;y
+initial_x0_array=[k for k in np.arange(0.74,0.96,0.02)]
+print('range of orbits',initial_x0_array[0],initial_x0_array[-1],' # of orbits:',len(initial_x0_array))
+#get the initial conditions from the find_dro script
+#initial_vy_array=[20,20,14,    12.65265,   12, 9,     8.6773,   7, 6.1297,      6.0060,4]
+initial_vy_array=[16.833667, 15,14,    12.65265,   12, 9,     8.6773,   7, 6.1297,       4.8797,4]
 
 
-########### solution for 0.85 au is 9.3293 km/s #from minimization analysis
-x0 = 0.85*au  # km (between Sun and Earth)
-y0 = 0  # km
-vx0 = 0  # km/s
-vy0 = 9.3298 # km/s
-#vy0 = 14.00 # km/s
+print(initial_x0_array[6])
 
-[x3,y3]=make_dro([x0, y0, vx0, vy0],2)
-initial_x0_array.append(x0/au)
-initial_vy_array.append(vy0)
+#list of solutions
+#0.80 au is 12.6525 # km/s
+#0.86 au 8.6773
+#0.90 au is 6.13 km/s manually
+#0.92 is 5.0060
 
+#calculate all 11 orbits, and write the orbit solutions in this array
+orbits_cart=np.zeros((2,8760,11))
+orbits_polar=np.zeros((2,8760,11))
 
+for i in np.arange(11):
+    #print('DRO #',i)
+    #print(initial_x0_array[i])
+    #print(au)
+    #print(initial_vy_array[i])
+    #print()
 
-########## ESA SHIELD concept at 0.86 au
-########### solution for 0.86 au is 8.6773 km/s #from minimization analysis
-x0 = 0.86*au  # km (between Sun and Earth)
-y0 = 0  # km
-vx0 = 0  # km/s
-vy0 = 8.6773 # km/s
+    #initial conditions
+    x0 = initial_x0_array[i]*au  # km (between Sun and Earth)
+    y0 = 0  # km
+    vx0 = 0  # km/s
+    vy0 = initial_vy_array[i] # km/s
 
-[xs1,ys1]=make_dro([x0, y0, vx0, vy0],2)
-initial_x0_array.append(x0/au)
-initial_vy_array.append(vy0)
+    orbits_cart[:,:,i]=make_dro([x0, y0, vx0, vy0],1)
 
+    #polar coordinate conversion, get x and y
+    dro_x=orbits_cart[0,:,i] #first coordinate x or y, then data, then orbit #
+    dro_y=orbits_cart[1,:,i]
+    dro_r= np.sqrt(dro_x**2 + dro_y**2)
+    dro_lon = np.arctan2(dro_y, dro_x)
 
-########## ESA HENON at 0.918 au
-########### solution for 0.918 au is 5.0060 km/s #from minimization analysis
-x0 = 0.918*au  # km (between Sun and Earth)
-y0 = 0  # km
-vx0 = 0  # km/s
-vy0 = 5.0060 # km/s
+    orbits_polar[0,:,i]=dro_r
+    orbits_polar[1,:,i]=dro_lon
 
-[xh1,yh1]=make_dro([x0, y0, vx0, vy0],2)
-initial_x0_array.append(x0/au)
-initial_vy_array.append(vy0)
+print('orbit calculation done')
 
-
-
-
-
-########### solution for 0.8 au is 12.65265 km/s
-x0 = 0.8*au  # km (between Sun and Earth)
-y0 = 0  # km
-vx0 = 0  # km/s
-vy0 = 12.6525 # km/s
-[x4,y4]=make_dro([x0, y0, vx0, vy0],2)
-initial_x0_array.append(x0/au)
-initial_vy_array.append(vy0)
+print('access orbits like: x1=orbits[0,:,3], first coordinate x=0 or y=1, then data, then orbit #')
 
 
-########### solution for 0.75 au is 16.11 km/s
-x0 = 0.75*au  # km (between Sun and Earth)
-y0 = 0  # km
-vx0 = 0  # km/s
-vy0 = 16.1142 # km/s
+# ## plot results
 
-[x5,y5]=make_dro([x0, y0, vx0, vy0],2)
-initial_x0_array.append(x0/au)
-initial_vy_array.append(vy0)
+# In[34]:
 
-
-print(initial_x0_array)
-print(initial_vy_array)
-
-
-print('done')
-
-############# conversion for polar plot
-dro_x1=x1
-dro_y1=y1
-dro_r1= np.sqrt(dro_x1**2 + dro_y1**2)
-dro_lon1 = np.arctan2(dro_y1, dro_x1)
-
-dro_x2=x2
-dro_y2=y2
-dro_r2= np.sqrt(dro_x2**2 + dro_y2**2)
-dro_lon2 = np.arctan2(dro_y2, dro_x2)
-
-dro_x3=x3
-dro_y3=y3
-dro_r3= np.sqrt(dro_x3**2 + dro_y3**2)
-dro_lon3 = np.arctan2(dro_y3, dro_x3)
-
-#SHIELD
-dro_xs1=xs1
-dro_ys1=ys1
-dro_rs1= np.sqrt(dro_xs1**2 + dro_ys1**2)
-dro_lons1 = np.arctan2(dro_ys1, dro_xs1)
-
-#HENON
-dro_xh1=xh1
-dro_yh1=yh1
-dro_rh1= np.sqrt(dro_xh1**2 + dro_yh1**2)
-dro_lonh1 = np.arctan2(dro_yh1, dro_xh1)
-
-dro_x4=x4
-dro_y4=y4
-dro_r4= np.sqrt(dro_x4**2 + dro_y4**2)
-dro_lon4 = np.arctan2(dro_y4, dro_x4)
-
-dro_x5=x5
-dro_y5=y5
-dro_r5= np.sqrt(dro_x5**2 + dro_y5**2)
-dro_lon5 = np.arctan2(dro_y5, dro_x5)
-
-
-print('done')
-
-############## quick visual check that the sim worked
 
 sns.set_style('whitegrid')
 sns.set_context('paper')   
@@ -456,17 +363,13 @@ sns.set_context('paper')
 fig, ax = plt.subplots(figsize=(10, 10))
 
 #third body
-ax.plot(x1, y1, 'black', linewidth=1, alpha=1.0, label='DRO 1 0.95 au')
-ax.plot(x2, y2, 'red', linewidth=1, alpha=1.0, label='DRO 2 0.90 au')
-ax.plot(x3, y3, 'blue', linewidth=1, alpha=1.0, label='DRO 3 0.85 au')
-ax.plot(xs1, ys1, 'purple', linewidth=1, alpha=1.0, label='DRO SHIELD1 0.86 au')
-ax.plot(xh1, yh1, 'royalblue', linewidth=1, alpha=1.0, label='DRO HENON1 0.918 au')
-ax.plot(x4, y4, 'green', linewidth=1, alpha=1.0, label='DRO 4 0.80 au')
-ax.plot(x5, y5, 'orange', linewidth=1, alpha=1.0, label='DRO 5 0.75 au')
+ax.plot(orbits_cart[0,:,0], orbits_cart[1,:,0], 'red', linewidth=1, alpha=1.0, label='DRO 1 0.74 au')
+ax.plot(orbits_cart[0,:,3], orbits_cart[1,:,3], 'green', linewidth=1, alpha=1.0, label='DRO 4 0.80 au')
+ax.plot(orbits_cart[0,:,6], orbits_cart[1,:,6], 'orange', linewidth=1, alpha=1.0, label='DRO 7 0.86 au SHIELD')
+ax.plot(orbits_cart[0,:,9], orbits_cart[1,:,9], 'purple', linewidth=1, alpha=1.0, label='DRO 10 0.92 au HENON')
 
 
-
-ax.plot(x0/au, y0/au, 'o', color='red', markersize=3, label='Start', zorder=4)
+#ax.plot(x0/au, y0/au, 'o', color='red', markersize=3, label='Start', zorder=4)
 
 # Plot Sun - fixed at origin shifted by -mu*R
 sun_x = -mu  
@@ -492,7 +395,11 @@ ax.yaxis.set_major_locator(MultipleLocator(0.1))
 ax.grid(True, alpha=1.0, linestyle='-')
 ax.set_aspect('equal')
 
-############################### write orbits in pickle and txt files
+
+# ## write orbits in pickle and txt files
+# 
+
+# In[10]:
 
 
 file_dir='orbit_files/'
@@ -533,7 +440,7 @@ np.savetxt(file_dir+'dro5.txt', dro5, header='x [au] y [au] r [au] lon [rad]', f
 # ### DRO and planets plot
 # 
 
-# In[16]:
+# In[5]:
 
 
 #plot spacecraft equidistant distribution on DRO 
@@ -612,7 +519,7 @@ plt.show()
 
 # ## Plots for DRO characteristics
 
-# In[17]:
+# In[6]:
 
 
 ########### plot for initial speed and minimum distance to Sun
@@ -670,7 +577,7 @@ plt.savefig('results/dro_dmin_vinit.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 
-# In[8]:
+# In[7]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -769,7 +676,7 @@ plt.savefig('results/dro_dmin_max_lon.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 
-# In[9]:
+# In[8]:
 
 
 ########## ORBITAL PERIOD Figure
@@ -809,7 +716,7 @@ plt.show()
 
 # ### plot combined with planets in HEEQ
 
-# In[19]:
+# In[9]:
 
 
 sns.set_style('darkgrid')
@@ -869,7 +776,7 @@ plt.savefig('results/dro_all_polar.pdf', dpi=300,bbox_inches='tight')
 
 # ### same plot zoomed in with spacecraft distribution
 
-# In[11]:
+# In[10]:
 
 
 ##plot spacecraft equidistant distribution on DRO 

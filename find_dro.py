@@ -126,7 +126,7 @@ def make_dro(initial_state,years):
 
 # ### Make test orbits for 2 years
 
-# In[14]:
+# In[9]:
 
 
 ###################### find dro solutions by trial and error
@@ -163,7 +163,7 @@ initial_vy_array.append(vy0)
 x0 = 0.86*au  # km (between Sun and Earth)
 y0 = 0  # km
 vx0 = 0  # km/s
-vy0 = 3 # km/s
+vy0 = 6 # km/s
 
 [x5,y5]=make_dro([x0, y0, vx0, vy0],2)
 initial_x0_array.append(x0/au)
@@ -243,7 +243,7 @@ ax.set_aspect('equal')
 # #### Method 1: match start and end point after 1 orbital period
 # 
 
-# In[11]:
+# In[7]:
 
 
 ########### start with subsolar distance of the DRO you want to find
@@ -251,12 +251,20 @@ x0 = 0.86*au  # km (between Sun and Earth)
 y0 = 0
 vx0 = 0
 
+
+### HENON ORBIT 0.918 au
+
+#x0 = 0.918*au  # km (between Sun and Earth)
+#y0 = 0
+#vx0 = 0
+
+
 #array of initial speed in y direction
 #resolution=5000 
 resolution=500 
 
 #retrograde orbits start with positive vy
-vy0_arr=np.linspace(6.0,10.0,resolution)
+vy0_arr=np.linspace(3.0,10.0,resolution)
 
 #prograde check
 #vy0_arr=-np.linspace(0.0,20.0,resolution)
@@ -273,7 +281,7 @@ distance=np.array(distance)
 print(vy0_arr[-10:-1])
 
 
-# In[12]:
+# In[8]:
 
 
 sns.set_style('whitegrid')
@@ -322,6 +330,11 @@ plt.show(fig)
 # y0= 0.95 - > vy0 = 3.0496 km/s  # not totally right, rather should be 3.03
 # 
 # y0= 0.90 - > vy0 = 6.1297 km/s
+# 
+# 
+# ### ESA HENON 
+# 
+# y0= 0.918 au -> vy0 = 5.0060 km/s
 # 
 # ### ESA SHIELD
 # y0= 0.86 - > vy0 = 8.6773 km/s
