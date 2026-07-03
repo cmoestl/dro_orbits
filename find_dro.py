@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ### find DRO solutions by minimization
-# find initial conditions: find minimum distance after 1 year to find exact initial conditions for given subsolar distance of the DRO; does not work well for 0.95 au, but is fine for 0.9 au and below
-# algorithm for search for initial conditions - better to make 2 revolutions and try to match them as close as possible, not only start and end point
-# 
-# note that there are e.g. orbits that come back to Earth after 2 years 
-# 
-# 
-# 
+# ### Find DRO solutions by minimization
+# find initial conditions: find minimum distance after 1 year to find exact initial conditions for given subsolar distance of the DRO
+# note that there are e.g. other orbits that come back to Earth after 2 years 
 
 # In[1]:
 
@@ -126,7 +121,7 @@ def make_dro(initial_state,years):
 
 # ### Make test orbits for 2 years
 
-# In[9]:
+# In[3]:
 
 
 ###################### find dro solutions by trial and error
@@ -243,32 +238,21 @@ ax.set_aspect('equal')
 # #### Method 1: match start and end point after 1 orbital period
 # 
 
-# In[7]:
+# In[21]:
 
 
 ########### start with subsolar distance of the DRO you want to find
-x0 = 0.86*au  # km (between Sun and Earth)
-y0 = 0
-vx0 = 0
-
-
-### HENON ORBIT 0.918 au
-
-#x0 = 0.918*au  # km (between Sun and Earth)
-#y0 = 0
-#vx0 = 0
-
+x0 = 0.76*au  # km (between Sun and Earth)
+y0 = 0;vx0 = 0
 
 #array of initial speed in y direction
-#resolution=5000 
 resolution=500 
 
-#retrograde orbits start with positive vy
-vy0_arr=np.linspace(3.0,10.0,resolution)
+#retrograde orbits start with positive vy - adjust this range
+vy0_arr=np.linspace(11.0,18.0,resolution)
 
 #prograde check
 #vy0_arr=-np.linspace(0.0,20.0,resolution)
-
 
 distance=[]
 #go through all orbit solutions for given vy0
@@ -280,9 +264,7 @@ distance=np.array(distance)
 
 print(vy0_arr[-10:-1])
 
-
-# In[8]:
-
+########plot result
 
 sns.set_style('whitegrid')
 sns.set_context('talk')
@@ -297,7 +279,7 @@ ax1.set_xlabel('Vy_0')
 #min_i = argrelextrema(distance, np.less)[0]
 min_i = np.argmin(distance)
 print('indices ',min_i)
-print('vy0 [km/s] values for all minima',vy0_arr[min_i])
+print('vy0 [km/s] values for minimum',vy0_arr[min_i])
 
 ### plot all solutions that close in on themselves
 #for k in np.arange(0,len(min_i)):

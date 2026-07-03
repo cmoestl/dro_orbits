@@ -5,24 +5,22 @@
 
 Author: C. Möstl, Austrian Space Weather Office, GeoSphere Austria
 
-Last update: May 2026
+Last update: July 2026
 
-Sample distant retrograde orbits in HEE are available in folder "orbit_files", this is work in progress!
+Sample distant retrograde orbits in HEE are available in folder "orbit_files", this is work in progress.
 
-If you want to use this, please contact me.
-
+If you want to use this for anything, please contact me.
 
 
 ---
 
-
 ### Scripts
-
-
 
 **find_dro.ipynb**: finds optimized numerical solutions for dro orbits to provide initial conditions 
 
-**dro.ipynb**: generates numerical solutions for dro orbits with given initial conditions, makes plots and animations for DRO analyses
+**dro.ipynb**: main notebook, generates numerical solutions for dro orbits with given initial conditions, makes plots and animations for DRO analyses
+
+**example_for_usage.ipynb**: reads in an orbit file from folder orbit_files and plots a DRO in cartesian and polar coordinates
 
 ---
 
@@ -42,6 +40,7 @@ Frnka 2010: https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 Perozzi+ 2017:  https://link.springer.com/article/10.1140/epjp/i2017-11644-0    
 Lugaz+ 2024: https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2024SW004189    
 Cicalo+ 2025:  https://arxiv.org/abs/2508.02138  
+Prete+ 2026: https://www.swsc-journal.org/articles/swsc/full_html/2026/01/swsc250088/swsc250088.html
 
 
 ---
@@ -60,7 +59,7 @@ Create a conda environment using the "envs/env_dro.yml", and activate the enviro
 
 ### Demo plot
 
-![DRO sample](results/dro_all_polar_zoom_9.png)
+![DRO sample](results/dro_all_icme_polar_zoom.png)
 
 
 
