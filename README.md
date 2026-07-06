@@ -20,7 +20,7 @@ If you want to use this for anything, please contact me.
 
 **dro.ipynb**: main notebook, generates numerical solutions for dro orbits with given initial conditions, makes plots and animations for DRO analyses
 
-**example_for_usage.ipynb**: reads in an orbit file from folder orbit_files and plots a DRO in cartesian and polar coordinates
+**example.ipynb**: reads in an orbit file from folder orbit_files and plots a DRO in cartesian and polar coordinates
 
 ---
 
