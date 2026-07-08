@@ -8,20 +8,16 @@
 # 
 # For the paper Möstl et al. 2026b ApJ, in prep.
 # 
-# 
 # uses conda environment *dro* (for environment file, see folder env)
 #  
 # Authors: C. Möstl, Austrian Space Weather Office, GeoSphere Austria    
 # https://bsky.app/profile/chrisoutofspace.bsky.social, https://github.com/cmoestl
 # 
 # last update: July 2026
-#  
-# ### Issues
-# - 
 # 
 # ### Ideas
 # - plotly plot with clickable positions for each ICME event, for homepage
-# - check on RLD value for all available ICME events
+# - check on RLD value for all available ICME events - select events within the 30° domain
 # - 3D plot with DROs so one can see the ecliptic and where L4 and L5 are with respect to the solar equator
 # - Create DROs around Venus, Mercury or Mars - how do they look like, are would they be useful?
 # 
@@ -39,6 +35,7 @@ import matplotlib
 import matplotlib.dates as mdates
 from matplotlib.ticker import MultipleLocator
 from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
 from matplotlib.patches import Rectangle
 
@@ -101,7 +98,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[2]:
+# In[14]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -235,7 +232,7 @@ plt.plot(earth.time,np.rad2deg(earth.lon))
 
 
 
-
+print('Earth orbit aphelion perihelion',np.min(earth.r), np.max(earth.r))
 
 
 # ### CR3BP simulation (circular restricted 3 Body Problem)
@@ -367,7 +364,7 @@ plt.plot(initial_x0_array,initial_vy_array,'ko', linestyle='--',linewidth=1)
 
 # ## Figure 1 initial conditions and DRO solutions in cartesian coordinates
 
-# In[24]:
+# In[5]:
 
 
 sns.set_style('whitegrid')
@@ -466,7 +463,7 @@ plt.savefig('results/fig1_initial_cartesian_dro.pdf', dpi=300,bbox_inches='tight
 # ## write orbits in pickle and txt files 
 # 
 
-# In[25]:
+# In[6]:
 
 
 file_dir='orbit_files/'
@@ -511,7 +508,7 @@ ax.set_aspect('equal')
 # ## Figure 2 DRO and planets plot, spacecraft distribution
 # 
 
-# In[26]:
+# In[7]:
 
 
 sns.set_style('whitegrid')
@@ -593,15 +590,13 @@ plt.savefig('results/fig2_polar.pdf', dpi=300,bbox_inches='tight')
 
 # ## Figure 3 plots for DRO characteristics
 
-# In[30]:
+# In[8]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
 
 sns.set_style('whitegrid')
 sns.set_context('talk')    
-
-import matplotlib.gridspec as gridspec
 
 fig = plt.figure(figsize=(15, 12))
 
@@ -610,7 +605,6 @@ gs = gridspec.GridSpec(2, 4, figure=fig)
 ax1 = fig.add_subplot(gs[0, 0:2])
 ax2 = fig.add_subplot(gs[0, 2:4])
 ax3 = fig.add_subplot(gs[1, 1:3])  # centered, half-width
-
 
 ########################## (a) widest extension in dy
 minx_list=[]
@@ -639,10 +633,11 @@ ax1.tick_params(axis='y', labelsize=15)
 ax1.xaxis.set_major_locator(MultipleLocator(0.04))
 
 
+
 # Perform linear regression using scipy.stats.linregress
 slope, intercept, r_value, p_value, std_err = stats.linregress(minx_list, maxy_list)
 
-print('fit for dmin vs dymax')
+print('fit for dxmin vs dymax')
 # Print results
 print(f"Slope: {slope:.4f}")
 print(f"Intercept: {intercept:.4f}")
@@ -656,6 +651,8 @@ ax1.plot(x_fit,y_fit1, c='dimgrey',alpha=0.8,zorder=1)
 
 print(' Factor for widest extension in y compared to distance from Earth: ',np.mean(np.array(maxy_list)/(1-np.array(minx_list))))
 
+#rev_x_fit=1-x_fit
+#print(np.round(rev_x_fit,2))
 
 ########################## (b) widest extension in longitude
 
@@ -681,7 +678,7 @@ ax2.xaxis.set_major_locator(MultipleLocator(0.04))
 slope, intercept, r_value, p_value, std_err = stats.linregress(minx_list, maxlong_list)
 
 # Print results
-print('fit for dmin vs longitude')
+print('fit for dxmin vs theta')
 print(f"Slope: {slope:.4f}")
 print(f"Intercept: {intercept:.4f}")
 print(f"R-squared: {r_value**2:.4f}")
@@ -739,7 +736,7 @@ print()
 print('For Table 1:')
 print('for a given maximum extension in longitude, what is the dmin of the DRO?')
 
-for i in np.arange(5,35,2.5):
+for i in np.arange(5,35,1):
     print('max longitude is ',i,' degree, then dmin is ',(i-intercept)/slope)
 
 ax2.legend()
@@ -783,15 +780,15 @@ plt.savefig('results/fig3_characterize.png', dpi=300,bbox_inches='tight')
 
 # ## Figure 4  lead times
 
-# In[32]:
+# In[9]:
 
 
 ##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
 
 speed=400 #km/s
 leadmax=(1.0-0.7)*au/speed/(3600)
-print(f'lead time for 400 km/s wind for 0.7 au is {leadmax:.2f} hours')
-print('This is the maximum plot range, so it includes Venus')
+#print(f'lead time for 400 km/s wind for 0.7 au is {leadmax:.2f} hours')
+#print('This is the maximum plot range, so it includes Venus')
 
 
 ############### plot
@@ -819,12 +816,13 @@ for i in np.arange(11):
 ax.axvline(x=0.99, c='k', linestyle='-', linewidth=2)
 
 
+
 k=0
 for i in [400,600,800,1000,1500,2000,2500]:    
     speed=i #km/s
-    leaddist=np.linspace(0.7,1.0,100)
+    leaddist=np.linspace(0.7,1.0,16)
     leadtime=(1.0-leaddist)*au/speed/(3600)
-    #print(leadtime)
+
     ax.plot(leaddist,leadtime,label=f'{i} km s$^{{-1}}$',color='k', linestyle=style[k])
     k=k+1
 
@@ -844,6 +842,22 @@ plt.tight_layout()
 
 plt.savefig(f'results/fig4_lead_time.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/fig4_lead_time.pdf', dpi=300,bbox_inches='tight')
+
+
+print('Table for lead time results')
+
+k=0
+
+
+for i in [400,600,800,1000,1500,2000,2500]:    
+    speed=i #km/s
+    dxmin=np.linspace(0.74,0.94,11)
+    leadtime=(1.0-dxmin)*au/speed/(3600)
+
+    print()
+    print(speed,'km/s')
+    for k in np.arange(0,11):
+        print(f"{np.round(dxmin[k],2):01f}",'au', np.round(leadtime[k],1),'hours')
 
 
 # ## Figure 5  gap analysis 
@@ -967,7 +981,7 @@ def get_delta2(sc_int_array):
     return delta_value
 
 
-# In[33]:
+# In[12]:
 
 
 #method 1
@@ -980,9 +994,14 @@ delta_value12=get_delta(sc_int12)
 delta2_value3=get_delta2(sc_int3)
 delta2_value6=get_delta2(sc_int6)
 delta2_value9=get_delta2(sc_int9)
-
-print('delta for 9 spacecraft:',delta2_value9)
 delta2_value12=get_delta2(sc_int12)
+
+print('dxmin:',np.round(initial_x0_array,2))
+print('delta for 3 spacecraft:',delta2_value3)
+print('delta for 6 spacecraft:',delta2_value6)
+print('delta for 9 spacecraft:',delta2_value9)
+print('delta for 12 spacecraft:',delta2_value12)
+
 
 #not fully consistent, need to check method 1 (numerical errors?)
 #print(delta_value3)
@@ -1116,6 +1135,24 @@ plt.savefig(f'results/fig5_gap_analysis.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 
 
+# In[13]:
+
+
+### table for gap analysis
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
 # ## Figure 6 sketch for upstream monitoring
 # made with affinity designer, see folder sketches/
 
@@ -1123,7 +1160,7 @@ plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 # read ICMECAT, plot with DROs
 # 
 
-# In[34]:
+# In[13]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1145,7 +1182,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[35]:
+# In[14]:
 
 
 sns.set_style('darkgrid')
@@ -1226,7 +1263,7 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 # ## Figure 7 ICMECAT event distribution and radial longitude domain
 # 
 
-# In[36]:
+# In[15]:
 
 
 sns.set_style('whitegrid')
@@ -1348,43 +1385,18 @@ plt.savefig(f'results/fig7_RLD.pdf', dpi=200,bbox_inches='tight')
 # - For each event position, get RLD value (for fun)
 # - Radial longitudinal diff (RLD) plot map - every ICME event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
 
-# In[37]:
+# In[16]:
 
 
-##**** work in progress, select all events first in domain -35 to +35° and between 0 to 1 au
+##for future work, select all events first in domain -35 to +35° and between 0 to 1 au
 #all solar orbiter events
-slon=np.deg2rad(ic.mo_sc_long_heeq[isol])
-sr=ic.mo_sc_heliodistance[isol]
-slon
+#slon=np.deg2rad(ic.mo_sc_long_heeq[isol])
+#sr=ic.mo_sc_heliodistance[isol]
+#slon
 
-
-s_rld=diff_radial_longitudinal(sr,slon)
-print(s_rld)
+#s_rld=diff_radial_longitudinal(sr,slon)
+#print(s_rld)
 #plt.plot(s_rld,'o')
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:
