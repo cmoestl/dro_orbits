@@ -22,7 +22,7 @@
 # - Create DROs around Venus, Mercury or Mars - how do they look like, are would they be useful?
 # 
 
-# In[1]:
+# In[2]:
 
 
 import time
@@ -98,7 +98,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[14]:
+# In[3]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -239,7 +239,7 @@ print('Earth orbit aphelion perihelion',np.min(earth.r), np.max(earth.r))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[3]:
+# In[20]:
 
 
 def cr3bp_equations(t, state):
@@ -284,7 +284,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation of all DROs
 
-# In[4]:
+# In[21]:
 
 
 #list for initial conditions for dmin;x and vinit;y
@@ -296,8 +296,12 @@ initial_vy_array=[16.833667, 15.41482, 14.012024, 12.65265, 11.306613, 9.983967,
 
 #print(initial_x0_array[6])
 
-#time resolution
-array_size=366*24
+#time resolution one hour, one year
+#array_size=366*24
+
+
+#time resolution for 2 years, one hour, use this for the 2 year file
+#array_size=2*366*24
 
 #calculate all 11 orbits, and write the orbit solutions in this array
 orbits_cart=np.zeros((2,array_size,11))
@@ -319,6 +323,9 @@ for i in np.arange(11):
     vy0 = initial_vy_array[i] # km/s
 
     orbits_cart[:,:,i]=make_dro([x0, y0, vx0, vy0],1)
+
+    #for 2 years
+    #orbits_cart[:,:,i]=make_dro([x0, y0, vx0, vy0],2)
 
     #polar coordinate conversion, get x and y
     dro_x=orbits_cart[0,:,i] #first coordinate x or y, then data, then orbit #
@@ -362,9 +369,18 @@ y_fit_poly = poly_func(x_fit)
 plt.plot(initial_x0_array,initial_vy_array,'ko', linestyle='--',linewidth=1)
 
 
+
+## write one file with all DRO orbits in cartesian and polar coordinates for 2 years for the animations
+#filename_pickle='dro_all_2years.p'
+#with open(file_dir+filename_pickle, 'wb') as f:
+#        pickle.dump(orbits_polar, f)
+#        pickle.dump(orbits_cart, f)
+
+
+
 # ## Figure 1 initial conditions and DRO solutions in cartesian coordinates
 
-# In[5]:
+# In[6]:
 
 
 sns.set_style('whitegrid')
@@ -463,7 +479,7 @@ plt.savefig('results/fig1_initial_cartesian_dro.pdf', dpi=300,bbox_inches='tight
 # ## write orbits in pickle and txt files 
 # 
 
-# In[6]:
+# In[14]:
 
 
 file_dir='orbit_files/'
@@ -495,6 +511,15 @@ for i in np.arange(11):
 
     print('orbit written into', file_dir+filename_pickle, ' ',filename_txt, ' ',dmin_str)
 
+
+
+## write one file with all DRO orbits in cartesian and polar coordinates
+filename_pickle='dro_all.p'
+with open(file_dir+filename_pickle, 'wb') as f:
+        pickle.dump(orbits_polar, f)
+        pickle.dump(orbits_cart, f)
+
+
 ############### Example for reading the pickle files
 filename='orbit_files/dro07__0_88au.p'
 with open(filename,'rb') as f:
@@ -503,6 +528,7 @@ with open(filename,'rb') as f:
 fig, ax = plt.subplots(1,1,figsize=(3, 3))
 ax.plot(dro.x,dro.y)
 ax.set_aspect('equal')    
+
 
 
 # ## Figure 2 DRO and planets plot, spacecraft distribution
@@ -1160,7 +1186,7 @@ plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 # read ICMECAT, plot with DROs
 # 
 
-# In[13]:
+# In[14]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1182,7 +1208,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[14]:
+# In[15]:
 
 
 sns.set_style('darkgrid')
@@ -1263,7 +1289,7 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 # ## Figure 7 ICMECAT event distribution and radial longitude domain
 # 
 
-# In[15]:
+# In[16]:
 
 
 sns.set_style('whitegrid')
@@ -1385,7 +1411,7 @@ plt.savefig(f'results/fig7_RLD.pdf', dpi=200,bbox_inches='tight')
 # - For each event position, get RLD value (for fun)
 # - Radial longitudinal diff (RLD) plot map - every ICME event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
 
-# In[16]:
+# In[17]:
 
 
 ##for future work, select all events first in domain -35 to +35° and between 0 to 1 au
@@ -1397,6 +1423,36 @@ plt.savefig(f'results/fig7_RLD.pdf', dpi=200,bbox_inches='tight')
 #s_rld=diff_radial_longitudinal(sr,slon)
 #print(s_rld)
 #plt.plot(s_rld,'o')
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:

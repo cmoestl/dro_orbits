@@ -238,7 +238,7 @@ ax.set_aspect('equal')
 # #### Method 1: match start and end point after 1 orbital period
 # 
 
-# In[21]:
+# In[4]:
 
 
 ########### start with subsolar distance of the DRO you want to find
@@ -334,7 +334,7 @@ plt.show(fig)
 # #### Method 2: match 2 orbital periods and minimize their shape deviation
 # 
 
-# In[6]:
+# In[5]:
 
 
 **develop: match 2 orbital periods = stability**
@@ -348,6 +348,12 @@ y0= 0.85 - > vy0 = km/s
 y0= 0.80 - > vy0 =  km/s
 
 y0= 0.75 - > vy0 =  km/s
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
