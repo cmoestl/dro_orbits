@@ -11,11 +11,10 @@
 # ### Ideas
 # 
 # - make movies with black background
-# - add Parker spiral to HCI movie
 # 
 # 
 
-# In[2]:
+# In[17]:
 
 
 import time
@@ -80,7 +79,7 @@ os.system('jupyter nbconvert --to script animations.ipynb')
 # 
 # 
 
-# In[3]:
+# In[18]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -216,7 +215,7 @@ plt.plot(earth.time,np.rad2deg(earth.lon))
 # ## Read DRO files 
 # produced by dro.ipynb, here the 2 year file is used as its easier for the animations to make 1 orbital period with 2 years for the spacecraft positions
 
-# In[4]:
+# In[20]:
 
 
 file_dir='orbit_files/'
@@ -229,7 +228,7 @@ with open(file_dir+filename_pickle, 'rb') as f:
 
 # ## Animation frames for Figure 2 (HEE visualization)
 
-# In[5]:
+# In[21]:
 
 
 sns.set_style('whitegrid')
@@ -348,7 +347,7 @@ make_frame(301)
 
 # ## Make animation for Figure 2 (HEE)
 
-# In[6]:
+# In[22]:
 
 
 #don't forget to add plt.close() above when making the animation
@@ -431,26 +430,11 @@ def make_animation():
 
 
 
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
 # ## Animations in the HCI coordinate system
 # for visuals for talks
 # method: just add Earth longitude to all dro spacecraft
 
-# In[7]:
+# In[23]:
 
 
 start=datetime.datetime(2033,1,1)
@@ -470,7 +454,7 @@ earth_hci=get_planet_positions_hci(times,kernels_path, 'EARTH_BARYCENTER')
 earth_hci.lon=earth_hci.lon-earth_hci.lon[0]
 
 
-# In[15]:
+# In[25]:
 
 
 sns.set_style('whitegrid')
@@ -597,7 +581,7 @@ def make_frame_hci(i):
     plt.savefig(f'results/frames_hci/dro{i:04d}.jpg', dpi=200)
 
     ########## show frames without plt.close() first
-    plt.close()
+    #plt.close()
 
 #up to 75 spacecraft possible
 nr_sc=9
@@ -695,54 +679,6 @@ nr_sc=9;make_animation_hci()
 #nr_sc=20;make_animation()
 
 #nr_sc=40;make_animation()
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
 
 
 
