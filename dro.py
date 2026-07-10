@@ -23,7 +23,7 @@
 # - Create DROs around Venus, Mercury or Mars - how do they look like, are would they be useful?
 # 
 
-# In[22]:
+# In[50]:
 
 
 import time
@@ -99,7 +99,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[23]:
+# In[36]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -240,15 +240,15 @@ print('Earth orbit aphelion perihelion',np.min(earth.r), np.max(earth.r))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[24]:
+# In[37]:
 
 
 def cr3bp_equations(t, state):
-    """
-    Equations of motion for the Circular Restricted 3-Body Problem
-    in the rotating reference frame with physical units.    
-    state = [x, y, vx, vy] in km and km/s
-    """
+    #####
+    # Equations of motion for the Circular Restricted 3-Body Problem
+    # in the rotating reference frame with physical units.    
+    # state = [x, y, vx, vy] in km and km/s
+    ####
     x, y, vx, vy = state
 
     # Positions of the primaries in rotating frame
@@ -259,7 +259,7 @@ def cr3bp_equations(t, state):
     r1 = np.sqrt((x - x1)**2 + y**2)
     r2 = np.sqrt((x - x2)**2 + y**2)
 
-    # equations in Möstl et al. 2026b ApJ
+    # Equation 1 in Möstl et al. 2026b ApJ
     ax = (2*omega*vy + omega**2*x - G*M_sun*(x - x1)/r1**3 - G*M_earth*(x - x2)/r2**3)    
 
     #y2 and y1 is always 0
@@ -272,9 +272,10 @@ def make_dro(initial_state,years):
 
     days = 366*years  # Simulate for n years
     t_span = (0, days * 86400)      # Time span for integration (in seconds)
-    t_eval = np.linspace(t_span[0], t_span[1], days*24) #time resolution is 1 hour, need to include better for arbitrary time arrays
+    t_eval = np.linspace(t_span[0], t_span[1], days*24) #time resolution is 1 hour
 
-    solution = solve_ivp(cr3bp_equations, t_span, initial_state,  t_eval=t_eval, method='DOP853', rtol=1e-10, atol=1e-8)     # Solve the differential equations
+    # Solve the differential equations
+    solution = solve_ivp(cr3bp_equations, t_span, initial_state,  t_eval=t_eval, method='DOP853', rtol=1e-10, atol=1e-8)    
 
     # Extract trajectory, convert to au
     x = solution.y[0]/au; y = solution.y[1]/au
@@ -285,7 +286,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation of all DROs
 
-# In[56]:
+# In[38]:
 
 
 #list for initial conditions for dmin;x and vinit;y
@@ -384,7 +385,7 @@ plt.plot(initial_x0_array,initial_vy_array,'ko', linestyle='--',linewidth=1)
 
 # ## Figure 1 initial conditions and DRO solutions in cartesian coordinates
 
-# In[57]:
+# In[39]:
 
 
 sns.set_style('whitegrid')
@@ -463,7 +464,7 @@ ax1.plot(x_fit, y_fit, label='linear fit', color='dimgrey')
 ax1.plot(x_fit, y_fit_poly, label='polynomial 2nd degree fit', color='dimgrey',linestyle='--')
 
 ax1.legend(loc='upper right', fontsize=15)
-ax1.set_xlabel(r'$d_{x;min})$ [au]',fontsize=15)
+ax1.set_xlabel(r'$d_{x;min}$ [au]',fontsize=15)
 ax1.set_ylabel('$v_{y;init}$ [km s$^{-1}]$',fontsize=15)
 ax1.set_xlim(0.7, 1.0)
 ax1.set_ylim(0,20)
@@ -483,7 +484,7 @@ plt.savefig('results/fig1_initial_cartesian_dro.pdf', dpi=300,bbox_inches='tight
 # ## write orbits in pickle and txt files 
 # 
 
-# In[58]:
+# In[40]:
 
 
 file_dir='orbit_files/'
@@ -538,7 +539,7 @@ ax.set_aspect('equal')
 # ## Figure 2 DRO and planets plot, spacecraft distribution
 # 
 
-# In[59]:
+# In[41]:
 
 
 sns.set_style('whitegrid')
@@ -620,7 +621,7 @@ plt.savefig('results/fig2_polar.pdf', dpi=300,bbox_inches='tight')
 
 # ## Figure 3 plots for DRO characteristics
 
-# In[60]:
+# In[42]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -810,7 +811,7 @@ plt.savefig('results/fig3_characterize.png', dpi=300,bbox_inches='tight')
 
 # ## Figure 4  lead times
 
-# In[61]:
+# In[43]:
 
 
 ##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
@@ -894,7 +895,7 @@ for i in [400,600,800,1000,1500,2000,2500]:
 
 # get intervals for 3,6,9,12 spacecraft
 
-# In[62]:
+# In[44]:
 
 
 # number of spacecraft
@@ -943,7 +944,7 @@ ax.set_ylabel('longitude [°]')
 ax.set_xlabel('time [days]')
 
 
-# In[63]:
+# In[45]:
 
 
 ######### get delta to Sun-Earth line in heliospheric longitude
@@ -1011,7 +1012,7 @@ def get_delta2(sc_int_array):
     return delta_value
 
 
-# In[64]:
+# In[46]:
 
 
 #method 1
@@ -1165,24 +1166,6 @@ plt.savefig(f'results/fig5_gap_analysis.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 
 
-# In[65]:
-
-
-### table for gap analysis
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
 # ## Figure 6 sketch for upstream monitoring
 # made with affinity designer, see folder sketches/
 
@@ -1190,7 +1173,7 @@ plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 # read ICMECAT, plot with DROs
 # 
 
-# In[66]:
+# In[47]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1212,7 +1195,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[67]:
+# In[48]:
 
 
 sns.set_style('darkgrid')
@@ -1293,7 +1276,7 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 # ## Figure 7 ICMECAT event distribution and radial longitude domain
 # 
 
-# In[68]:
+# In[49]:
 
 
 sns.set_style('whitegrid')
@@ -1415,7 +1398,7 @@ plt.savefig(f'results/fig7_RLD.pdf', dpi=200,bbox_inches='tight')
 # - For each event position, get RLD value (for fun)
 # - Radial longitudinal diff (RLD) plot map - every ICME event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
 
-# In[69]:
+# In[34]:
 
 
 ##for future work, select all events first in domain -35 to +35° and between 0 to 1 au

@@ -5,7 +5,7 @@
 # find initial conditions: find minimum distance after 1 year to find exact initial conditions for given subsolar distance of the DRO
 # note that there are e.g. other orbits that come back to Earth after 2 years 
 
-# In[1]:
+# In[ ]:
 
 
 import time
@@ -238,15 +238,15 @@ ax.set_aspect('equal')
 # #### Method 1: match start and end point after 1 orbital period
 # 
 
-# In[4]:
+# In[9]:
 
 
 ########### start with subsolar distance of the DRO you want to find
-x0 = 0.76*au  # km (between Sun and Earth)
+x0 = 0.74*au  # km (between Sun and Earth)
 y0 = 0;vx0 = 0
 
 #array of initial speed in y direction
-resolution=500 
+resolution=1000 
 
 #retrograde orbits start with positive vy - adjust this range
 vy0_arr=np.linspace(11.0,18.0,resolution)
@@ -331,23 +331,63 @@ plt.show(fig)
 # 
 # 
 
-# #### Method 2: match 2 orbital periods and minimize their shape deviation
-# 
-
-# In[5]:
+# In[7]:
 
 
-**develop: match 2 orbital periods = stability**
+##### Method 2: match 2 orbital periods and minimize their shape deviation
+#**develop: match 2 orbital periods = stability**
 
-y0= 0.95 - > vy0 =  km/s  # 
+#y0= 0.95 - > vy0 =  km/s  # 
 
-y0= 0.90 - > vy0 = km/s
+#y0= 0.90 - > vy0 = km/s
 
-y0= 0.85 - > vy0 = km/s
+#y0= 0.85 - > vy0 = km/s
 
-y0= 0.80 - > vy0 =  km/s
+#y0= 0.80 - > vy0 =  km/s
 
-y0= 0.75 - > vy0 =  km/s
+#y0= 0.75 - > vy0 =  km/s
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:

@@ -14,7 +14,7 @@
 # 
 # 
 
-# In[1]:
+# In[ ]:
 
 
 import time
@@ -454,7 +454,7 @@ earth_hci=get_planet_positions_hci(times,kernels_path, 'EARTH_BARYCENTER')
 earth_hci.lon=earth_hci.lon-earth_hci.lon[0]
 
 
-# In[19]:
+# In[48]:
 
 
 sns.set_style('whitegrid')
@@ -528,7 +528,8 @@ def make_frame_hci(i):
 
     #indices of shield spacecraft equidistant in time over 1 year
     shield_i=np.arange(0,array_size,interval)[0:nr_sc]+i*time_resolution
-    print(shield_i)    
+
+
 
     #Sun-Earth line
     ax.plot([0,earth_hci.lon[shield_i[0]]],[0 , earth_hci.r[shield_i[0]] ],lw=0.5,c='k',alpha=0.8 )
@@ -554,8 +555,12 @@ def make_frame_hci(i):
     #for SHIELD at 0.86 au 9 s/c
     #ax.scatter(orbits_polar[1,shield_i,6]+add_longitude, orbits_polar[0,shield_i,6],marker='o', edgecolor='k', facecolor=dro_colors[0:9],s=25, label='0.86 au, 9 s/c', lw=0.5)#,edgecolor='black')
 
-    #for HENON at 0.92 au 1 s/c
+    #for HENON at 0.92 au 1 s/c or general the 0 spacecraft
     ax.scatter(orbits_polar[1,shield_i,9]+add_longitude, orbits_polar[0,shield_i,9],marker='o', edgecolor='k', facecolor=dro_colors[0],s=25, label='0.92 au, 1 s/c', lw=0.5)#,edgecolor='black')
+
+    #Position text for HENON
+    plt.figtext(0.8,0.82,str(f"{orbits_polar[0,shield_i,9][0]:.3f}")+' R [au] ', color='black', ha='left',fontsize=fsize)
+    plt.figtext(0.8,0.86,str(f"{np.rad2deg(orbits_polar[1,shield_i,9][0]):.3f}")+' long [°]', color='black', ha='left',fontsize=fsize)
 
 
     #ax.scatter(orbits_polar[1,shield_i,9], orbits_polar[0,shield_i,9],marker='o', c=dro_colors[9], alpha=1.0,s=15)
@@ -590,12 +595,12 @@ def make_frame_hci(i):
 
 #up to 75 spacecraft possible
 nr_sc=1
-make_frame_hci(106)
+make_frame_hci(101)
 
 
 # ## Make animation
 
-# In[ ]:
+# In[49]:
 
 
 #don't forget to add plt.close() above when making the animation
@@ -609,7 +614,7 @@ def make_animation_hci():
     ffmpeg_path=''
     outputdirectory = 'results/frames_hci/'
     animdirectory   = 'results/hci_movies'
-    movie_filename=f'dro_hci_{nr_sc}'
+    movie_filename=f'dro_hci_{nr_sc}_pos'
 
     i_all=int(366*24/factor) #366*24 for all frames for 1 year, 1 hour resolution, divided by factor
     #i_all=10 #for testing
