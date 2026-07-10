@@ -14,7 +14,7 @@
 # 
 # 
 
-# In[17]:
+# In[1]:
 
 
 import time
@@ -79,7 +79,7 @@ os.system('jupyter nbconvert --to script animations.ipynb')
 # 
 # 
 
-# In[18]:
+# In[2]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -215,7 +215,7 @@ plt.plot(earth.time,np.rad2deg(earth.lon))
 # ## Read DRO files 
 # produced by dro.ipynb, here the 2 year file is used as its easier for the animations to make 1 orbital period with 2 years for the spacecraft positions
 
-# In[20]:
+# In[3]:
 
 
 file_dir='orbit_files/'
@@ -228,7 +228,7 @@ with open(file_dir+filename_pickle, 'rb') as f:
 
 # ## Animation frames for Figure 2 (HEE visualization)
 
-# In[21]:
+# In[4]:
 
 
 sns.set_style('whitegrid')
@@ -347,7 +347,7 @@ make_frame(301)
 
 # ## Make animation for Figure 2 (HEE)
 
-# In[22]:
+# In[5]:
 
 
 #don't forget to add plt.close() above when making the animation
@@ -434,7 +434,7 @@ def make_animation():
 # for visuals for talks
 # method: just add Earth longitude to all dro spacecraft
 
-# In[23]:
+# In[6]:
 
 
 start=datetime.datetime(2033,1,1)
@@ -454,7 +454,7 @@ earth_hci=get_planet_positions_hci(times,kernels_path, 'EARTH_BARYCENTER')
 earth_hci.lon=earth_hci.lon-earth_hci.lon[0]
 
 
-# In[25]:
+# In[19]:
 
 
 sns.set_style('whitegrid')
@@ -528,7 +528,7 @@ def make_frame_hci(i):
 
     #indices of shield spacecraft equidistant in time over 1 year
     shield_i=np.arange(0,array_size,interval)[0:nr_sc]+i*time_resolution
-
+    print(shield_i)    
 
     #Sun-Earth line
     ax.plot([0,earth_hci.lon[shield_i[0]]],[0 , earth_hci.r[shield_i[0]] ],lw=0.5,c='k',alpha=0.8 )
@@ -551,7 +551,12 @@ def make_frame_hci(i):
 
     #ORBIT 6 is defined here in the array - this is the 0.86 au one
 
-    ax.scatter(orbits_polar[1,shield_i,6]+add_longitude, orbits_polar[0,shield_i,6],marker='o', edgecolor='k', facecolor=dro_colors[0:9],s=25, label='0.86 au, 9 s/c', lw=0.5)#,edgecolor='black')
+    #for SHIELD at 0.86 au 9 s/c
+    #ax.scatter(orbits_polar[1,shield_i,6]+add_longitude, orbits_polar[0,shield_i,6],marker='o', edgecolor='k', facecolor=dro_colors[0:9],s=25, label='0.86 au, 9 s/c', lw=0.5)#,edgecolor='black')
+
+    #for HENON at 0.92 au 1 s/c
+    ax.scatter(orbits_polar[1,shield_i,9]+add_longitude, orbits_polar[0,shield_i,9],marker='o', edgecolor='k', facecolor=dro_colors[0],s=25, label='0.92 au, 1 s/c', lw=0.5)#,edgecolor='black')
+
 
     #ax.scatter(orbits_polar[1,shield_i,9], orbits_polar[0,shield_i,9],marker='o', c=dro_colors[9], alpha=1.0,s=15)
     #ax.scatter(orbits_polar[1,shield_i,0], orbits_polar[0,shield_i,0],marker='o', c=dro_colors[0], alpha=1.0,s=15)
@@ -581,16 +586,16 @@ def make_frame_hci(i):
     plt.savefig(f'results/frames_hci/dro{i:04d}.jpg', dpi=200)
 
     ########## show frames without plt.close() first
-    #plt.close()
+    plt.close()
 
 #up to 75 spacecraft possible
-nr_sc=9
+nr_sc=1
 make_frame_hci(106)
 
 
 # ## Make animation
 
-# In[16]:
+# In[ ]:
 
 
 #don't forget to add plt.close() above when making the animation
@@ -652,11 +657,11 @@ def make_animation_hci():
 
 
 #1 for SHIELD
-nr_sc=9;make_animation_hci()
+#nr_sc=9;make_animation_hci()
 
 
-#1 for HENON - set orbit
-#nr_sc=1;make_animation_hci()
+#1 for HENON - set orbit in make_frame_hci function
+nr_sc=1;make_animation_hci()
 
 
 

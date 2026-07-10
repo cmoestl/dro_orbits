@@ -16,13 +16,14 @@
 # last update: July 2026
 # 
 # ### Ideas
+# - make a kind of heat map for the gap analysis
 # - plotly plot with clickable positions for each ICME event, for homepage
 # - check on RLD value for all available ICME events - select events within the 30° domain
 # - 3D plot with DROs so one can see the ecliptic and where L4 and L5 are with respect to the solar equator
 # - Create DROs around Venus, Mercury or Mars - how do they look like, are would they be useful?
 # 
 
-# In[2]:
+# In[22]:
 
 
 import time
@@ -98,7 +99,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[3]:
+# In[23]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -239,7 +240,7 @@ print('Earth orbit aphelion perihelion',np.min(earth.r), np.max(earth.r))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[20]:
+# In[24]:
 
 
 def cr3bp_equations(t, state):
@@ -284,7 +285,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation of all DROs
 
-# In[21]:
+# In[56]:
 
 
 #list for initial conditions for dmin;x and vinit;y
@@ -292,15 +293,18 @@ initial_x0_array=[k for k in np.arange(0.74,0.96,0.02)]
 print('range of orbits',initial_x0_array[0],initial_x0_array[-1],' # of orbits:',len(initial_x0_array))
 #get the initial conditions from the find_dro script
 
-initial_vy_array=[16.833667, 15.41482, 14.012024, 12.65265, 11.306613, 9.983967,     8.6773,   7.394789, 6.1297,       4.8797,3.667334]
+initial_vy_array=[16.822822, 15.41482, 14.012024, 12.65265, 11.306613, 9.983967,     8.6773,   7.394789, 6.1297,       4.8797,3.667334]
 
 #print(initial_x0_array[6])
 
 #time resolution one hour, one year
-#array_size=366*24
+array_size=366*24
 
 
-#time resolution for 2 years, one hour, use this for the 2 year file
+
+#** add switches for 2 year calculation
+
+#time resolution for 2 years, one hour, use this for the 2 year file *****************
 #array_size=2*366*24
 
 #calculate all 11 orbits, and write the orbit solutions in this array
@@ -325,7 +329,7 @@ for i in np.arange(11):
     orbits_cart[:,:,i]=make_dro([x0, y0, vx0, vy0],1)
 
     #for 2 years
-    #orbits_cart[:,:,i]=make_dro([x0, y0, vx0, vy0],2)
+    #orbits_cart[:,:,i]=make_dro([x0, y0, vx0, vy0],2)### **************
 
     #polar coordinate conversion, get x and y
     dro_x=orbits_cart[0,:,i] #first coordinate x or y, then data, then orbit #
@@ -369,7 +373,7 @@ y_fit_poly = poly_func(x_fit)
 plt.plot(initial_x0_array,initial_vy_array,'ko', linestyle='--',linewidth=1)
 
 
-
+##### ************
 ## write one file with all DRO orbits in cartesian and polar coordinates for 2 years for the animations
 #filename_pickle='dro_all_2years.p'
 #with open(file_dir+filename_pickle, 'wb') as f:
@@ -380,7 +384,7 @@ plt.plot(initial_x0_array,initial_vy_array,'ko', linestyle='--',linewidth=1)
 
 # ## Figure 1 initial conditions and DRO solutions in cartesian coordinates
 
-# In[6]:
+# In[57]:
 
 
 sns.set_style('whitegrid')
@@ -479,7 +483,7 @@ plt.savefig('results/fig1_initial_cartesian_dro.pdf', dpi=300,bbox_inches='tight
 # ## write orbits in pickle and txt files 
 # 
 
-# In[14]:
+# In[58]:
 
 
 file_dir='orbit_files/'
@@ -534,7 +538,7 @@ ax.set_aspect('equal')
 # ## Figure 2 DRO and planets plot, spacecraft distribution
 # 
 
-# In[7]:
+# In[59]:
 
 
 sns.set_style('whitegrid')
@@ -616,7 +620,7 @@ plt.savefig('results/fig2_polar.pdf', dpi=300,bbox_inches='tight')
 
 # ## Figure 3 plots for DRO characteristics
 
-# In[8]:
+# In[60]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -806,7 +810,7 @@ plt.savefig('results/fig3_characterize.png', dpi=300,bbox_inches='tight')
 
 # ## Figure 4  lead times
 
-# In[9]:
+# In[61]:
 
 
 ##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
@@ -890,7 +894,7 @@ for i in [400,600,800,1000,1500,2000,2500]:
 
 # get intervals for 3,6,9,12 spacecraft
 
-# In[10]:
+# In[62]:
 
 
 # number of spacecraft
@@ -939,7 +943,7 @@ ax.set_ylabel('longitude [°]')
 ax.set_xlabel('time [days]')
 
 
-# In[11]:
+# In[63]:
 
 
 ######### get delta to Sun-Earth line in heliospheric longitude
@@ -1007,7 +1011,7 @@ def get_delta2(sc_int_array):
     return delta_value
 
 
-# In[12]:
+# In[64]:
 
 
 #method 1
@@ -1161,7 +1165,7 @@ plt.savefig(f'results/fig5_gap_analysis.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 
 
-# In[13]:
+# In[65]:
 
 
 ### table for gap analysis
@@ -1186,7 +1190,7 @@ plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 # read ICMECAT, plot with DROs
 # 
 
-# In[14]:
+# In[66]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1208,7 +1212,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[15]:
+# In[67]:
 
 
 sns.set_style('darkgrid')
@@ -1289,7 +1293,7 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 # ## Figure 7 ICMECAT event distribution and radial longitude domain
 # 
 
-# In[16]:
+# In[68]:
 
 
 sns.set_style('whitegrid')
@@ -1411,7 +1415,7 @@ plt.savefig(f'results/fig7_RLD.pdf', dpi=200,bbox_inches='tight')
 # - For each event position, get RLD value (for fun)
 # - Radial longitudinal diff (RLD) plot map - every ICME event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
 
-# In[17]:
+# In[69]:
 
 
 ##for future work, select all events first in domain -35 to +35° and between 0 to 1 au
