@@ -15,15 +15,21 @@
 # 
 # last update: July 2026
 # 
+# ### Issues
+# 
+# - fix hours so that full hours in writing files
+# 
 # ### Ideas
-# - make a kind of heat map for the gap analysis
+# - make one table on the r(theta) for the cone of acceptance of 5, 7.5, 10, 12.5, 15° - how far behind is the r from rmin? note that this also affects the range of lead times
+# - black background plots
+# - make a kind of heat map for the gap analysis - a table with orbit in y, the cone of acceptance in x direction, and then how many spacecraft fulfill the requirement; could also be a figure and added to the gap Figure 5
 # - plotly plot with clickable positions for each ICME event, for homepage
 # - check on RLD value for all available ICME events - select events within the 30° domain
 # - 3D plot with DROs so one can see the ecliptic and where L4 and L5 are with respect to the solar equator
 # - Create DROs around Venus, Mercury or Mars - how do they look like, are would they be useful?
 # 
 
-# In[50]:
+# In[39]:
 
 
 import time
@@ -99,7 +105,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[36]:
+# In[40]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -240,7 +246,7 @@ print('Earth orbit aphelion perihelion',np.min(earth.r), np.max(earth.r))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[37]:
+# In[41]:
 
 
 def cr3bp_equations(t, state):
@@ -286,7 +292,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation of all DROs
 
-# In[38]:
+# In[42]:
 
 
 #list for initial conditions for dmin;x and vinit;y
@@ -385,7 +391,7 @@ plt.plot(initial_x0_array,initial_vy_array,'ko', linestyle='--',linewidth=1)
 
 # ## Figure 1 initial conditions and DRO solutions in cartesian coordinates
 
-# In[39]:
+# In[43]:
 
 
 sns.set_style('whitegrid')
@@ -484,7 +490,7 @@ plt.savefig('results/fig1_initial_cartesian_dro.pdf', dpi=300,bbox_inches='tight
 # ## write orbits in pickle and txt files 
 # 
 
-# In[40]:
+# In[44]:
 
 
 file_dir='orbit_files/'
@@ -539,7 +545,7 @@ ax.set_aspect('equal')
 # ## Figure 2 DRO and planets plot, spacecraft distribution
 # 
 
-# In[41]:
+# In[45]:
 
 
 sns.set_style('whitegrid')
@@ -621,7 +627,7 @@ plt.savefig('results/fig2_polar.pdf', dpi=300,bbox_inches='tight')
 
 # ## Figure 3 plots for DRO characteristics
 
-# In[42]:
+# In[46]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -809,9 +815,49 @@ plt.savefig('results/fig3_characterize.pdf', dpi=300,bbox_inches='tight')
 plt.savefig('results/fig3_characterize.png', dpi=300,bbox_inches='tight')
 
 
+# ### Table for cone of acceptance r(theta_c)
+
+# In[90]:
+
+
+#make one table on the r(theta) for the cone of acceptance of 5, 7.5, 10, 12.5, 15° - how far behind is the r from rmin?
+
+labeling=['0.74 au','0.76 au','0.78 au','0.80 au','0.82 au','0.84 au','0.86 au','0.88 au','0.90 au','0.92 au','0.94 au']
+
+#cone of acceptance is 5 to 20° in 1° steps
+conedeg=np.arange(5,21,2.5)
+cone=np.deg2rad(np.arange(5,21,2.5))
+print('cone of acceptance',np.rad2deg(cone))
+
+print()
+
+#go through all orbits
+for i in np.arange(11):
+    #print(labeling[i])
+    #theta
+    #orbits_polar[1,:,i]
+    #r    
+    print('rmin = r(theta=0)',np.min(np.round(orbits_polar[0,:,i],3)))
+
+    for conej in cone:
+
+        #check whether this dro extends over the cone of acceptance
+        if conej < np.max(orbits_polar[1,:,i]):
+            coneindex=np.where(orbits_polar[1,:,i] > conej)[0][0]
+            #print(coneindex)
+            #check for index with theta - should be the cone value
+            #print(np.rad2deg(orbits_polar[1,coneindex,i]))
+            print('theta_cone = ',np.round(np.rad2deg(conej),1),'deg, r(theta_cone) =', np.round(orbits_polar[0,coneindex,i],4))
+
+
+
+    print()
+
+
+
 # ## Figure 4  lead times
 
-# In[43]:
+# In[32]:
 
 
 ##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
@@ -895,7 +941,7 @@ for i in [400,600,800,1000,1500,2000,2500]:
 
 # get intervals for 3,6,9,12 spacecraft
 
-# In[44]:
+# In[33]:
 
 
 # number of spacecraft
@@ -944,7 +990,7 @@ ax.set_ylabel('longitude [°]')
 ax.set_xlabel('time [days]')
 
 
-# In[45]:
+# In[34]:
 
 
 ######### get delta to Sun-Earth line in heliospheric longitude
@@ -1012,7 +1058,7 @@ def get_delta2(sc_int_array):
     return delta_value
 
 
-# In[46]:
+# In[35]:
 
 
 #method 1
@@ -1166,6 +1212,24 @@ plt.savefig(f'results/fig5_gap_analysis.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 
 
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
 # ## Figure 6 sketch for upstream monitoring
 # made with affinity designer, see folder sketches/
 
@@ -1173,7 +1237,7 @@ plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 # read ICMECAT, plot with DROs
 # 
 
-# In[47]:
+# In[13]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1195,7 +1259,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[48]:
+# In[14]:
 
 
 sns.set_style('darkgrid')
@@ -1276,7 +1340,7 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 # ## Figure 7 ICMECAT event distribution and radial longitude domain
 # 
 
-# In[49]:
+# In[15]:
 
 
 sns.set_style('whitegrid')
@@ -1398,7 +1462,7 @@ plt.savefig(f'results/fig7_RLD.pdf', dpi=200,bbox_inches='tight')
 # - For each event position, get RLD value (for fun)
 # - Radial longitudinal diff (RLD) plot map - every ICME event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
 
-# In[34]:
+# In[16]:
 
 
 ##for future work, select all events first in domain -35 to +35° and between 0 to 1 au
