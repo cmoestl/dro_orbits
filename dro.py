@@ -17,19 +17,17 @@
 # 
 # ### Issues
 # 
-# - fix hours so that full hours in writing files
 # 
 # ### Ideas
-# - make one table on the r(theta) for the cone of acceptance of 5, 7.5, 10, 12.5, 15° - how far behind is the r from rmin? note that this also affects the range of lead times
+# - make one table on the r(theta) for the egdes of the cone of acceptance of 5, 7.5, 10, 12.5, 15° - how far behind is the r from rmin? note that this also affects the range of lead times
 # - black background plots
-# - make a kind of heat map for the gap analysis - a table with orbit in y, the cone of acceptance in x direction, and then how many spacecraft fulfill the requirement; could also be a figure and added to the gap Figure 5
 # - plotly plot with clickable positions for each ICME event, for homepage
 # - check on RLD value for all available ICME events - select events within the 30° domain
 # - 3D plot with DROs so one can see the ecliptic and where L4 and L5 are with respect to the solar equator
 # - Create DROs around Venus, Mercury or Mars - how do they look like, are would they be useful?
 # 
 
-# In[39]:
+# In[1]:
 
 
 import time
@@ -105,7 +103,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[40]:
+# In[2]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -246,7 +244,7 @@ print('Earth orbit aphelion perihelion',np.min(earth.r), np.max(earth.r))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[41]:
+# In[3]:
 
 
 def cr3bp_equations(t, state):
@@ -292,7 +290,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation of all DROs
 
-# In[42]:
+# In[29]:
 
 
 #list for initial conditions for dmin;x and vinit;y
@@ -391,7 +389,7 @@ plt.plot(initial_x0_array,initial_vy_array,'ko', linestyle='--',linewidth=1)
 
 # ## Figure 1 initial conditions and DRO solutions in cartesian coordinates
 
-# In[43]:
+# In[30]:
 
 
 sns.set_style('whitegrid')
@@ -470,7 +468,8 @@ ax1.plot(x_fit, y_fit, label='linear fit', color='dimgrey')
 ax1.plot(x_fit, y_fit_poly, label='polynomial 2nd degree fit', color='dimgrey',linestyle='--')
 
 ax1.legend(loc='upper right', fontsize=15)
-ax1.set_xlabel(r'$d_{x;min}$ [au]',fontsize=15)
+ax1.set_xlabel('$min(x)$ [au]',fontsize=15)
+
 ax1.set_ylabel('$v_{y;init}$ [km s$^{-1}]$',fontsize=15)
 ax1.set_xlim(0.7, 1.0)
 ax1.set_ylim(0,20)
@@ -490,17 +489,18 @@ plt.savefig('results/fig1_initial_cartesian_dro.pdf', dpi=300,bbox_inches='tight
 # ## write orbits in pickle and txt files 
 # 
 
-# In[44]:
+# In[31]:
 
 
 file_dir='orbit_files/'
 
 
 years=1
-days = 366*years  # Simulate for 1 year
+days = 366*years  # Simulate for 1 year with 366 days 
 t_span = (0, days * 24)      # Time span in hours 
-t_eval = np.linspace(t_span[0], t_span[1], days*24) #time resolution is 1 hour
+t_eval = np.linspace(t_span[0], t_span[1]-1, days*24) #time resolution is 1 hour
 
+print(t_eval[-10:-1])
 
 for i in np.arange(11):
 
@@ -523,7 +523,6 @@ for i in np.arange(11):
     print('orbit written into', file_dir+filename_pickle, ' ',filename_txt, ' ',dmin_str)
 
 
-
 ## write one file with all DRO orbits in cartesian and polar coordinates
 filename_pickle='dro_all.p'
 with open(file_dir+filename_pickle, 'wb') as f:
@@ -541,11 +540,10 @@ ax.plot(dro.x,dro.y)
 ax.set_aspect('equal')    
 
 
-
 # ## Figure 2 DRO and planets plot, spacecraft distribution
 # 
 
-# In[45]:
+# In[32]:
 
 
 sns.set_style('whitegrid')
@@ -627,7 +625,7 @@ plt.savefig('results/fig2_polar.pdf', dpi=300,bbox_inches='tight')
 
 # ## Figure 3 plots for DRO characteristics
 
-# In[46]:
+# In[33]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -661,8 +659,8 @@ for i in np.arange(11):
     ax1.scatter(minx,maxy, marker='o',c=dro_colors[i],edgecolor='black',zorder=3)
 
 
-ax1.set_xlabel('$d_{x;min}$ [au]',fontsize=15)
-ax1.set_ylabel('$d_{y;max}$ [au]',fontsize=15)
+ax1.set_xlabel('$min(x)$ [au]',fontsize=15)
+ax1.set_ylabel('$max(y)$ [au]',fontsize=15)
 ax1.set_xlim(0.7, 1.0)
 ax1.set_ylim(0,0.6)
 ax1.tick_params(axis='x', labelsize=15) 
@@ -702,7 +700,7 @@ for i in np.arange(11):
     maxlong_list.append(maxlong)    
     ax2.scatter(minx_list[i],maxlong, marker='o',c=dro_colors[i],edgecolor='black',zorder=3)
 
-ax2.set_xlabel('$d_{x;min}$ [au]',fontsize=15)
+ax2.set_xlabel('$r_{min}$ [au]',fontsize=15)
 ax2.set_ylabel(r'$max( \theta )$ [°]')
 ax2.set_xlim(0.7, 1.0)
 ax2.set_ylim(0,35)
@@ -817,7 +815,7 @@ plt.savefig('results/fig3_characterize.png', dpi=300,bbox_inches='tight')
 
 # ### Table for cone of acceptance r(theta_c)
 
-# In[90]:
+# In[34]:
 
 
 #make one table on the r(theta) for the cone of acceptance of 5, 7.5, 10, 12.5, 15° - how far behind is the r from rmin?
@@ -857,7 +855,7 @@ for i in np.arange(11):
 
 # ## Figure 4  lead times
 
-# In[32]:
+# In[35]:
 
 
 ##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
@@ -905,7 +903,7 @@ for i in [400,600,800,1000,1500,2000,2500]:
 
 ax.legend(framealpha=1.0)    
 ax.set_ylabel('Lead time [hours]')
-ax.set_xlabel('DRO minimum heliocentric distance $d_{x;min}$ [au]') 
+ax.set_xlabel('DRO minimum heliocentric distance $r_{min}$ [au]') 
 ax.set_ylim(0,32)
 ax.set_yticks(np.arange(0,35,2))
 ax.set_xticks(np.arange(0.7,1.0,0.025))
@@ -941,37 +939,50 @@ for i in [400,600,800,1000,1500,2000,2500]:
 
 # get intervals for 3,6,9,12 spacecraft
 
-# In[33]:
+# In[36]:
 
 
 # number of spacecraft
-nr_sc=np.array([3,6,9,12])
+nr_sc=np.array([3,4,5,6,7,8,9,10,11,12,13,14,15,16])
 
 print(array_size) # all time datapoints 
 interval=np.int16(array_size/nr_sc) #integer for using as index
-#indices of shield spacecraft equidistant distributed in time over 366 days
+
+#indices of shield spacecraft equidistant distributed in time over 366 days, this is relevant for all orbits
 sc_int3=np.arange(0,array_size,interval[0]) 
-sc_int6=np.arange(0,array_size,interval[1])
-sc_int9=np.arange(0,array_size,interval[2]) 
-sc_int12=np.arange(0,array_size,interval[3]) 
+sc_int4=np.arange(0,array_size,interval[1]) 
+sc_int5=np.arange(0,array_size,interval[2]) 
+sc_int6=np.arange(0,array_size,interval[3])
+sc_int7=np.arange(0,array_size,interval[4]) 
+sc_int8=np.arange(0,array_size,interval[5]) 
+sc_int9=np.arange(0,array_size,interval[6]) 
+sc_int10=np.arange(0,array_size,interval[7]) 
+sc_int11=np.arange(0,array_size,interval[8]) 
+sc_int12=np.arange(0,array_size,interval[9]) 
+sc_int13=np.arange(0,array_size,interval[10]) 
+sc_int14=np.arange(0,array_size,interval[11]) 
+sc_int15=np.arange(0,array_size,interval[12]) 
+sc_int16=np.arange(0,array_size,interval[13]) 
 
 print(sc_int3)
 print(sc_int6)
+print(sc_int8)
 print(sc_int9)
 print(sc_int12)
 
 
 print()
 ## case 9 s/c
-print('Number of SHIELD Spacecraft:',nr_sc[2])
+print('example')
+print('Number of SHIELD Spacecraft:',nr_sc[3])
 print('Interval in days (rounded):',np.round(sc_int9/24))
 #print('longitudes:',np.round(np.rad2deg(orbits_polar[1,shield_i,0])))
 #indices of each spacecraft at start
 print(sc_int9)
 
-#####################
-#orbits to focus on 0 3 6 9
 
+#####################
+#orbits to focus on 0 3 6 9 for plot
 #t_eval is time
 
 #longitude of each spacecraft
@@ -990,10 +1001,11 @@ ax.set_ylabel('longitude [°]')
 ax.set_xlabel('time [days]')
 
 
-# In[34]:
+# ### get delta to Sun-Earth line in heliospheric longitude
+
+# In[37]:
 
 
-######### get delta to Sun-Earth line in heliospheric longitude
 ####### example for orbit with 9 sc ###########
 #days=19 #step forward
 #n=np.int16(24*days) #round to nearest hour
@@ -1001,7 +1013,7 @@ ax.set_xlabel('time [days]')
 #####################################
 
 
-############### go through all 11 orbits and make it for the given number of spacecraft, 
+############### go through all 11 orbits and use the given number of spacecraft, 
 #answering: what is the maximum separation of the spacecraft to the Sun-Earth line in HEE longitude?
 #check when first spacecraft is further away in longitude from the SE line than the last spacecraft
 
@@ -1055,10 +1067,9 @@ def get_delta2(sc_int_array):
 
     #print(delta_value)    
 
+
     return delta_value
 
-
-# In[35]:
 
 
 #method 1
@@ -1067,22 +1078,50 @@ delta_value6=get_delta(sc_int6)
 delta_value9=get_delta(sc_int9)
 delta_value12=get_delta(sc_int12)
 
-#method 2
+#method 2 further used
 delta2_value3=get_delta2(sc_int3)
+delta2_value4=get_delta2(sc_int4)
+delta2_value5=get_delta2(sc_int5)
 delta2_value6=get_delta2(sc_int6)
+delta2_value7=get_delta2(sc_int7)
+delta2_value8=get_delta2(sc_int8)
 delta2_value9=get_delta2(sc_int9)
+delta2_value10=get_delta2(sc_int10)
+delta2_value11=get_delta2(sc_int11)
 delta2_value12=get_delta2(sc_int12)
+delta2_value13=get_delta2(sc_int13)
+delta2_value14=get_delta2(sc_int14)
+delta2_value15=get_delta2(sc_int15)
+delta2_value16=get_delta2(sc_int16)
+
 
 print('dxmin:',np.round(initial_x0_array,2))
-print('delta for 3 spacecraft:',delta2_value3)
+print('delta for 4 spacecraft:',delta2_value4)
 print('delta for 6 spacecraft:',delta2_value6)
 print('delta for 9 spacecraft:',delta2_value9)
 print('delta for 12 spacecraft:',delta2_value12)
+print('delta for 15 spacecraft:',delta2_value15)
+
+
+#put all in one array, these are 10 different spacecraft numbers
+#delta2_all=[delta2_value3,delta2_value4,delta2_value5,delta2_value6,delta2_value7,
+#            delta2_value8,delta2_value9,delta2_value10,delta2_value11,delta2_value12]
+
+#e.g. get all values for 3 spacecraft
+#delta2_all[0]
 
 
 #not fully consistent, need to check method 1 (numerical errors?)
 #print(delta_value3)
 #print(delta2_value3)
+
+
+# In[38]:
+
+
+####### plot results from gap analysis
+
+#furthermore, method 2 is used
 
 ############## plot
 
@@ -1093,14 +1132,15 @@ fig = plt.figure(figsize=(16, 8))
 ax1 = fig.add_subplot(1, 2, 1)
 ax2 = fig.add_subplot(1, 2, 2, projection='polar')
 
+
 #plot for each orbit with dmin the longitudes of the spacecraft in HEE, absolute difference to Sun-Earth line
 #ax1.scatter(initial_x0_array,delta_value3,c=dro_colors, marker='v', label='3 spacecraft',edgecolor='k')
 #ax1.scatter(initial_x0_array,delta_value6,c=dro_colors, marker='s', label='6 spacecraft',edgecolor='k')
 #ax1.scatter(initial_x0_array,delta_value9,c=dro_colors, marker='D', label='9 spacecraft',edgecolor='k')
 #ax1.scatter(initial_x0_array,delta_value12,c=dro_colors, marker='o', label='12 spacecraft',edgecolor='k')
 
-ms=50
-ax1.scatter(initial_x0_array,delta2_value3,c=dro_colors, marker='v', label='3 spacecraft',edgecolor='k',zorder=3,s=ms)
+ms=60
+ax1.scatter(initial_x0_array,delta2_value4,c=dro_colors, marker='v', label='4 spacecraft',edgecolor='k',zorder=3,s=ms)
 ax1.scatter(initial_x0_array,delta2_value6,c=dro_colors, marker='s', label='6 spacecraft',edgecolor='k',zorder=3,s=ms)
 ax1.scatter(initial_x0_array,delta2_value9,c=dro_colors, marker='D', label='9 spacecraft',edgecolor='k',zorder=3,s=ms)
 ax1.scatter(initial_x0_array,delta2_value12,c=dro_colors, marker='o', label='12 spacecraft',edgecolor='k',zorder=3,s=ms)
@@ -1108,8 +1148,8 @@ ax1.scatter(initial_x0_array,delta2_value12,c=dro_colors, marker='o', label='12 
 print()
 print('poly fits')
 
-coefficients = np.polyfit(initial_x0_array, delta2_value3, deg=2)
-print(f"6 spacecraft poly fit with 2nd degree: {coefficients}")
+coefficients = np.polyfit(initial_x0_array, delta2_value4, deg=2)
+print(f"4 spacecraft poly fit with 2nd degree: {coefficients}")
 # Create polynomial function from coefficients
 poly_func = np.poly1d(coefficients)
 x_fit = np.arange(0.7,1.0,0.01)
@@ -1146,10 +1186,10 @@ ax1.plot(x_fit, y_fit_poly,'k', linestyle='--',linewidth=1)
 
 ax1.legend()
 ax1.set_ylabel(r'$ max(\Delta_{SE})$ [°] longitude, HEE')
-ax1.set_xlabel(r'DRO minimum heliocentric distance $d_{x;min}$ [au]') 
+ax1.set_xlabel(r'DRO minimum heliocentric distance $r_{min}$ [au]') 
 ax1.xaxis.set_major_locator(MultipleLocator(0.02))
 ax1.yaxis.set_major_locator(MultipleLocator(2))
-ax1.set_ylim(0,32)
+ax1.set_ylim(0,30)
 ax1.set_xlim(0.72,0.99)
 ax1.grid(True, color='gray', linewidth=0.8, linestyle='-', alpha=0.6)
 
@@ -1178,7 +1218,7 @@ ax2.plot(orbits_polar[1,:,9], orbits_polar[0,:,9], dro_colors[9], linewidth=1.5,
 
 
 #spacecraft distributed
-shift=488
+shift=475
 scsize=25
 ax2.scatter(orbits_polar[1,shield_i+shift,0], orbits_polar[0,shield_i+shift,0],marker='o', c=dro_colors[0], alpha=1.0,s=scsize)
 ax2.scatter(orbits_polar[1,shield_i+shift,3], orbits_polar[0,shield_i+shift,3],marker='o', c=dro_colors[3], alpha=1.0,s=scsize)
@@ -1203,8 +1243,11 @@ ax2.set_xticklabels([f'{d}°' for d in degrees], fontsize=15)
 
 ax2.legend(loc=3,fontsize=12)
 
+fig.text(0.55, 0.33, '9 spacecraft case', fontsize=14, va='top', ha='left')
+
 fig.text(0.01, 0.98, '(a)', fontsize=22, va='top', ha='left')
 fig.text(0.55, 0.98, '(b)', fontsize=22, va='top', ha='left')
+
 
 plt.tight_layout()
 
@@ -1212,32 +1255,114 @@ plt.savefig(f'results/fig5_gap_analysis.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 
 
-# In[ ]:
+# ### Figure 6 heatmap for gap analysis
+# 
+
+# In[39]:
+
+
+### add analysis for heat map how many spacecraft are needed
+#delta2_value3
+
+#get variables again for x and y 
+
+labeling=['0.74 au','0.76 au','0.78 au','0.80 au','0.82 au','0.84 au','0.86 au','0.88 au','0.90 au','0.92 au','0.94 au']
+labeling_clean = ['0.74', '0.76', '0.78', '0.80', '0.82', '0.84', '0.86', '0.88', '0.90', '0.92', '0.94']
+
+
+#yaxis for table
+initial_x0_array
+
+#xaxis for table is cone of acceptance is 5 to 20° in 1° steps
+conedeg=np.arange(4,22,2)
+cone=np.deg2rad(np.arange(4,22,2))
+
+# define a heatmap for all combinations of orbits and cone of acceptance
+heatmap=np.zeros([len(initial_x0_array),len(cone)])
+
+
+print('------')
+print('cone of acceptance',np.rad2deg(cone))
+print('dros',np.round(initial_x0_array,2))
+print('sc numbers',nr_sc)
+print('------')
+
+
+print()
+print()
+
+
+#get number of spacecraft that fulfills the criteria that for all times a spacecraft is within the cone of acceptance
+
+#go through each orbit
+for i in np.arange(len(initial_x0_array)):    
+
+    #go through all cone values
+    for k in np.arange(len(conedeg)):
+
+        #print(initial_x0_array[i])
+        #print(conedeg[k])   
+
+        #for this combination, how many spacecraft are needed to go with delta < conedeg?
+        delta_current=[delta2_value3[i],delta2_value4[i], delta2_value5[i], delta2_value6[i],delta2_value7[i],delta2_value8[i],
+                      delta2_value9[i], delta2_value10[i], delta2_value11[i], delta2_value12[i],
+                       delta2_value13[i],delta2_value14[i],delta2_value15[i],delta2_value16[i] ]
+
+
+        heatmap[i,k]=np.nan
+
+        #print(str(np.round(delta_current,2)))
+        lowestind=np.where(delta_current< conedeg[k])[0]
+        #print(lowestind)
+
+        #check if result exists
+        if len(lowestind) > 0: 
+            #assume that 4 is the minimum number of s/c
+            if lowestind[0] > 0:
+                heatmap[i,k]=nr_sc[lowestind[0]]
+
+        #print()
+
+    #print()
+
+
+heatmap
+
+###########################
+
+#plot heatmap
+
+
+sns.set_style('whitegrid')
+sns.set_context('talk')    
+
+fig = plt.figure(figsize=(16, 8))
+ax1 = fig.add_subplot(1, 1, 1)
+
+sns.heatmap(heatmap, annot=True, cmap='Blues', cbar=True,
+            xticklabels=conedeg, yticklabels=labeling_clean,cbar_kws={'label': 'Number of spacecraft'})
+
+ax1.set_ylabel(r'DRO $r_{min}$ [au]')
+ax1.set_xlabel(r'Cone of acceptance $\Lambda$ [°] HEE longitude')
+
+ax1.set_yticklabels(ax1.get_yticklabels(), rotation=0)
+
+plt.tight_layout()
+
+plt.savefig(f'results/fig6_gap_analysis_heatmap.png', dpi=300,bbox_inches='tight')
+plt.savefig(f'results/fig6_gap_analysis_heatmap.pdf', dpi=300,bbox_inches='tight')
 
 
 
 
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# ## Figure 6 sketch for upstream monitoring
+# ## Figure 7 sketch for upstream monitoring
 # made with affinity designer, see folder sketches/
 
-# #### Figure ICMECAT event distribution and DROs
+# ## Figure ICMECAT event distribution and DROs (not used in paper)
 # read ICMECAT, plot with DROs
 # 
 
-# In[13]:
+# In[40]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1259,7 +1384,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[14]:
+# In[41]:
 
 
 sns.set_style('darkgrid')
@@ -1337,10 +1462,10 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.png', dpi=300,bbox_inches='tight')
 plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 
 
-# ## Figure 7 ICMECAT event distribution and radial longitude domain
+# ## Figure 8 ICMECAT event distribution and radial longitude domain
 # 
 
-# In[15]:
+# In[42]:
 
 
 sns.set_style('whitegrid')
@@ -1455,14 +1580,14 @@ ax.set_rorigin(0)
 ax.legend(bbox_to_anchor=(0.01, 0.99), loc='upper left',fontsize=12)
 
 plt.tight_layout()   
-plt.savefig(f'results/fig7_RLD.png', dpi=200,bbox_inches='tight')
-plt.savefig(f'results/fig7_RLD.pdf', dpi=200,bbox_inches='tight')
+plt.savefig(f'results/fig8_RLD.png', dpi=200,bbox_inches='tight')
+plt.savefig(f'results/fig8_RLD.pdf', dpi=200,bbox_inches='tight')
 
 
 # - For each event position, get RLD value (for fun)
 # - Radial longitudinal diff (RLD) plot map - every ICME event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
 
-# In[16]:
+# In[18]:
 
 
 ##for future work, select all events first in domain -35 to +35° and between 0 to 1 au
@@ -1474,6 +1599,30 @@ plt.savefig(f'results/fig7_RLD.pdf', dpi=200,bbox_inches='tight')
 #s_rld=diff_radial_longitudinal(sr,slon)
 #print(s_rld)
 #plt.plot(s_rld,'o')
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:

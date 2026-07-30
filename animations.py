@@ -5,8 +5,8 @@
 # 
 # with ffmpeg
 # 
-# - an animation in HEE coordinates for Figure 2 in the paper Möstl et al. 2026b in prep is produced (with 9 spacecraft), then some more similar ones with different numbers of spacecraft
-# - a movie in an HCI inertial system is also produced for better visualisation for talks 
+# - an animation in HEE coordinates for Figure 2 in the paper Möstl et al. 2026b is produced (with 9 spacecraft), then some more similar ones with different numbers of spacecraft
+# - a movie in an inertial system is also produced for better visualisation for talks (note that this is an ecliptic based inertial system, not exactly HCI)
 # 
 # ### Ideas
 # 
