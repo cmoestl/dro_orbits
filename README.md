@@ -18,7 +18,7 @@ If you want to use this for anything, please contact me.
 
 **find_dro.ipynb**: finds optimized numerical solutions for dro orbits to provide initial conditions 
 
-**dro.ipynb**: main notebook, generates numerical solutions for dro orbits with given initial conditions, makes plots and animations for DRO analyses
+**dro.ipynb**: main notebook, generates numerical solutions for dro orbits with given initial conditions, makes plots and tables for DRO analyses
 
 **animations.ipynb**: reads in orbit files from folder orbit_files and makes animations in HEE and in an inertial system 
 
