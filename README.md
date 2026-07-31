@@ -20,6 +20,8 @@ If you want to use this for anything, please contact me.
 
 **dro.ipynb**: main notebook, generates numerical solutions for dro orbits with given initial conditions, makes plots and animations for DRO analyses
 
+**animations.ipynb**: reads in orbit files from folder orbit_files and makes animations in HEE and in an inertial system 
+
 **example.ipynb**: reads in an orbit file from folder orbit_files and plots a DRO in cartesian and polar coordinates
 
 ---
@@ -35,7 +37,7 @@ If you want to use this for anything, please contact me.
 
 ### Papers
 
-St. Cyr+ 2000: https://www.sciencedirect.com/science/article/abs/pii/S1364682600000699?via%3Dihub      
+St. Cyr+ 2000: https://www.sciencedirect.com/science/article/abs/pii/S1364682600000699?via%3Dihub    
 Frnka 2010: https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf     
 Perozzi+ 2017:  https://link.springer.com/article/10.1140/epjp/i2017-11644-0    
 Lugaz+ 2024: https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2024SW004189    
