@@ -6,20 +6,21 @@
 # This code generates distant retrograde orbits (DROs) in the Sun-Earth system depending on the distance from the Sun     
 # part of https://github.com/cmoestl/dro_orbits
 # 
-# For the paper Möstl et al. 2026b ApJ, in prep.
+# For the paper Möstl et al. 2026b ApJ, to be submitted
 # 
 # uses conda environment *dro* (for environment file, see folder env)
 #  
 # Authors: C. Möstl, Austrian Space Weather Office, GeoSphere Austria    
 # https://bsky.app/profile/chrisoutofspace.bsky.social, https://github.com/cmoestl
 # 
-# last update: July 2026
-# 
-# ### Issues
-# 
+# last update: October 2026
 # 
 # ### Ideas
-# - plot slight reduction in lead times for the cone of acceptance going from 5-20°
+# 
+# - Figure 3d might be done for visuals how long a spacecraft stays in time in the upstream region, below r_min_edge
+# - may include a shade in the lead time plot depending on the distance to Earth? also r_limit could be used there
+# - may change heat map of spacecraft needed for r_limit (or not)
+# - could also plot slight reduction in lead times for the cone of acceptance going from 5-20°
 # - make black background plots
 # - plotly plot with clickable positions for each ICME event, for homepage
 # - check on RLD value for all available ICME events - select events within the +/-30° HEE longitude domain
@@ -27,7 +28,7 @@
 # - Create DROs around Venus, Mercury or Mars - how do they look like, are would they be useful?
 # 
 
-# In[58]:
+# In[42]:
 
 
 import time
@@ -105,7 +106,7 @@ os.system('jupyter nbconvert --to script dro.ipynb')
 # 
 # 
 
-# In[59]:
+# In[43]:
 
 
 #check if de442.bsp is available, otherwise download
@@ -246,7 +247,7 @@ print('Earth orbit aphelion perihelion',np.min(earth.r), np.max(earth.r))
 
 # equations adapted from https://jan.ucc.nau.edu/~ns46/student/2010/Frnka_2010.pdf
 
-# In[60]:
+# In[44]:
 
 
 def cr3bp_equations(t, state):
@@ -292,7 +293,7 @@ def make_dro(initial_state,years):
 
 # ### Numerical simulation of all DROs
 
-# In[61]:
+# In[45]:
 
 
 #list for initial conditions for dmin;x and vinit;y
@@ -391,7 +392,7 @@ plt.plot(initial_x0_array,initial_vy_array,'ko', linestyle='--',linewidth=1)
 
 # ## Figure 1 initial conditions and DRO solutions in cartesian coordinates
 
-# In[62]:
+# In[46]:
 
 
 sns.set_style('whitegrid')
@@ -470,7 +471,7 @@ ax1.plot(x_fit, y_fit, label='linear fit', color='dimgrey')
 ax1.plot(x_fit, y_fit_poly, label='polynomial 2nd degree fit', color='dimgrey',linestyle='--')
 
 ax1.legend(loc='upper right', fontsize=15)
-ax1.set_xlabel('$min(x)$ [au]',fontsize=15)
+ax1.set_xlabel('$r_{min}$ [au]',fontsize=15)
 
 ax1.set_ylabel('$v_{y;init}$ [km s$^{-1}]$',fontsize=15)
 ax1.set_xlim(0.7, 1.0)
@@ -491,7 +492,7 @@ plt.savefig('results/fig1_initial_cartesian_dro.pdf', dpi=300,bbox_inches='tight
 # ## write orbits in pickle and txt files 
 # 
 
-# In[63]:
+# In[47]:
 
 
 file_dir='orbit_files/'
@@ -545,7 +546,7 @@ ax.set_aspect('equal')
 # ## Figure 2 DRO and planets plot, spacecraft distribution
 # 
 
-# In[64]:
+# In[48]:
 
 
 sns.set_style('whitegrid')
@@ -627,7 +628,7 @@ plt.savefig('results/fig2_polar.pdf', dpi=300,bbox_inches='tight')
 
 # ## Figure 3 plots for DRO characteristics
 
-# In[65]:
+# In[49]:
 
 
 ####### relationship between minimum distance and widest point in y in au 
@@ -817,7 +818,7 @@ plt.savefig('results/fig3_characterize.png', dpi=300,bbox_inches='tight')
 
 # ### Table for cone of acceptance r(lambda)
 
-# In[66]:
+# In[30]:
 
 
 #make one table on the r(lambda) for the cone of acceptance of 5, 7.5, 10, 12.5, 15° - how far behind is the r from rmin?
@@ -857,7 +858,7 @@ for i in np.arange(11):
 
 # ## Figure 4  lead times
 
-# In[67]:
+# In[31]:
 
 
 ##analysis of distance vs lead time of different types of CMEs, assuming radial propagating front
@@ -941,7 +942,7 @@ for i in [400,600,800,1000,1500,2000,2500]:
 
 # get intervals for 3,6,9,12 spacecraft
 
-# In[68]:
+# In[32]:
 
 
 # number of spacecraft
@@ -1005,7 +1006,7 @@ ax.set_xlabel('time [days]')
 
 # ### get delta to Sun-Earth line in heliospheric longitude
 
-# In[69]:
+# In[33]:
 
 
 ####### example for orbit with 9 sc ###########
@@ -1118,7 +1119,7 @@ print('delta for 15 spacecraft:',delta2_value15)
 #print(delta2_value3)
 
 
-# In[70]:
+# In[34]:
 
 
 ####### plot results from gap analysis
@@ -1260,7 +1261,7 @@ plt.savefig(f'results/fig5_gap_analysis.pdf', dpi=300,bbox_inches='tight')
 # ### Figure 6 heatmap for gap analysis
 # 
 
-# In[71]:
+# In[35]:
 
 
 ### add analysis for heat map how many spacecraft are needed
@@ -1356,7 +1357,7 @@ plt.savefig(f'results/fig6_gap_analysis_heatmap.pdf', dpi=300,bbox_inches='tight
 
 
 
-# In[72]:
+# In[36]:
 
 
 #3d plot of the same for visualization of the gradient
@@ -1421,7 +1422,7 @@ fig.tight_layout()
 # read ICMECAT, plot with DROs
 # 
 
-# In[73]:
+# In[37]:
 
 
 url='icmecat/HELIO4CAST_ICMECAT_v23.csv'
@@ -1443,7 +1444,7 @@ ibep=np.where(ic.sc_insitu=='BepiColombo')[0]
 iuly=np.where(ic.sc_insitu=='ULYSSES')[0]
 
 
-# In[74]:
+# In[38]:
 
 
 sns.set_style('darkgrid')
@@ -1524,7 +1525,7 @@ plt.savefig(f'results/dro_all_icme_polar_zoom.pdf', dpi=300,bbox_inches='tight')
 # ## Figure 8 ICMECAT event distribution and radial longitude domain
 # 
 
-# In[75]:
+# In[39]:
 
 
 sns.set_style('whitegrid')
@@ -1647,7 +1648,7 @@ plt.savefig(f'results/fig8_RLD.pdf', dpi=200,bbox_inches='tight')
 # - For each event position, get RLD value (for fun)
 # - Radial longitudinal diff (RLD) plot map - every ICME event can be assigned an RLD number (make RLD statistics); check how many are in different domains, definitely a gap east of Earth for the SHIELD HENON orbits
 
-# In[76]:
+# In[40]:
 
 
 ##for future work, select all events first in domain -35 to +35° and between 0 to 1 au
@@ -1659,6 +1660,61 @@ plt.savefig(f'results/fig8_RLD.pdf', dpi=200,bbox_inches='tight')
 #s_rld=diff_radial_longitudinal(sr,slon)
 #print(s_rld)
 #plt.plot(s_rld,'o')
+
+
+# ## Examples of RLD
+# 
+# get as input r in au, theta as longitude in radians
+# The distance r given is the distance from the Sun
+# 
+
+# In[41]:
+
+
+#Laker et al. 2024
+print('Laker 2022 March events case 1')
+print(np.round(diff_radial_longitudinal(0.48,np.deg2rad(2.3)),3))
+print('Laker 2022 March events case 2')
+print(np.round(diff_radial_longitudinal(0.44,np.deg2rad(9.6)),3))
+
+print()
+print('Davies 2024 March events')
+#Davies et al. 2026
+print(np.round(diff_radial_longitudinal(0.45,np.deg2rad(4.1)),3))
+print(np.round(diff_radial_longitudinal(0.39,np.deg2rad(9.6)),3))
+
+print()
+print('Weiler')
+print(np.round(diff_radial_longitudinal(0.94,np.deg2rad(15)),3))
+
+
+print()
+print('Weiss')
+print(np.round(diff_radial_longitudinal(0.95,np.deg2rad(10.1)),3))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
