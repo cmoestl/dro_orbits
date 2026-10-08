@@ -9,7 +9,7 @@ Last update: October 2026
 
 Sample distant retrograde orbits in HEE are available in folder "orbit_files".
 
-If you want to use this for any types of studies, please contact me, see 
+If you want to use this for any types of studies, please contact me, see https://helioforecast.space/team
 
 
 ---
